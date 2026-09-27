@@ -23,6 +23,7 @@ import { LandingTourView } from './views/LandingTourView';
 import { LoginView } from './views/LoginView';
 import { SuperAdminView } from './views/SuperAdminView';
 import { TenantAdminRBACView } from './views/TenantAdminRBACView';
+import { SystemSettingsView } from './views/SystemSettingsView';
 
 const MainContent: React.FC = () => {
   const { activeScreen, currentUser } = useGym();
@@ -32,6 +33,17 @@ const MainContent: React.FC = () => {
     return (
       <div className="min-h-screen bg-surface text-on-surface">
         <LoginView />
+        <ToastContainer />
+      </div>
+    );
+  }
+
+  // Full screen product showcase landing page (no sidebar)
+  if (activeScreen === 'landing') {
+    return (
+      <div className="min-h-screen bg-surface text-on-surface">
+        <LandingTourView />
+        <Modals />
         <ToastContainer />
       </div>
     );
@@ -53,7 +65,9 @@ const MainContent: React.FC = () => {
           {activeScreen === 'reports' && <ReportsAnalyticsView />}
           {activeScreen === 'settings' && <SettingsView />}
           {activeScreen === 'tenant-rbac' && <TenantAdminRBACView />}
-          {activeScreen === 'landing' && <LandingTourView />}
+          {activeScreen === 'system-settings' && (
+            currentUser?.role === 'superadmin' ? <SystemSettingsView /> : <DashboardOverview />
+          )}
           {activeScreen === 'super-admin' && (
             currentUser?.role === 'superadmin' ? <SuperAdminView /> : <DashboardOverview />
           )}

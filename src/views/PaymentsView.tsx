@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useGym } from '../context/GymContext';
 import { Invoice, InvoiceStatus } from '../types';
+import { AsyncDataState } from '../components/AsyncDataState';
 
 export const PaymentsView: React.FC = () => {
   const { invoices, openModal, showToast } = useGym();
@@ -60,6 +61,7 @@ export const PaymentsView: React.FC = () => {
         </div>
       </div>
 
+      <AsyncDataState entityName="Payments & Ledger">
       {/* KPI Summary Cards Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {/* Total Revenue MTD */}
@@ -283,6 +285,7 @@ export const PaymentsView: React.FC = () => {
           </div>
         </div>
       </div>
+      </AsyncDataState>
 
       {/* Invoice Details / Voucher Modal */}
       {selectedInvoice && (

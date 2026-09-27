@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useGym } from '../context/GymContext';
+import { AsyncDataState } from '../components/AsyncDataState';
 
 export const AttendanceView: React.FC = () => {
   const {
@@ -86,6 +87,7 @@ export const AttendanceView: React.FC = () => {
       </div>
 
       {/* Top Section: Bento Grid layout for QR Scanner Terminal, Occupancy, and Quick Stats */}
+      <AsyncDataState entityName="Attendance Telemetry">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left Column: Live QR Scanner Terminal (7 cols) */}
         <div className="lg:col-span-7 bg-surface-container rounded-2xl p-6 flex flex-col justify-between relative overflow-hidden border border-outline-variant/30">
@@ -461,6 +463,7 @@ export const AttendanceView: React.FC = () => {
           </div>
         </div>
       </div>
+      </AsyncDataState>
     </div>
   );
 };

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useGym } from '../context/GymContext';
 import { LeadStage } from '../types';
+import { AsyncDataState } from '../components/AsyncDataState';
 
 export const CRMLeadsView: React.FC = () => {
   const { leads, updateLeadStage, convertLeadToMember, openModal, showToast } = useGym();
@@ -65,6 +66,7 @@ export const CRMLeadsView: React.FC = () => {
         </div>
       </div>
 
+      <AsyncDataState entityName="CRM Leads">
       {/* KPI Overview Cards (Bento Grid Style) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {/* Card 1 */}
@@ -475,6 +477,7 @@ export const CRMLeadsView: React.FC = () => {
           </div>
         </div>
       </div>
+      </AsyncDataState>
     </div>
   );
 };

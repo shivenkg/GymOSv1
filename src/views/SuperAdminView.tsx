@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useGym } from '../context/GymContext';
 import { SaaSPackage, SaaSLicense, OperationStatus } from '../types';
+import { TenantDatabaseManager } from '../components/TenantDatabaseManager';
+import { GoogleSheetsManager } from '../components/GoogleSheetsManager';
 
 export const SuperAdminView: React.FC = () => {
   const {
@@ -18,7 +20,7 @@ export const SuperAdminView: React.FC = () => {
     showToast,
   } = useGym();
 
-  const [activeTab, setActiveTab] = useState<'packages' | 'generator' | 'tenants' | 'telemetry'>('packages');
+  const [activeTab, setActiveTab] = useState<'packages' | 'generator' | 'tenants' | 'telemetry' | 'databases' | 'google-sheets'>('packages');
 
   // Package Customizer State
   const [customMembers, setCustomMembers] = useState<number>(1500);
@@ -396,6 +398,30 @@ export const SuperAdminView: React.FC = () => {
         >
           <span className="material-symbols-outlined text-[18px]">monitoring</span>
           <span>4. Hardware Hubs &amp; Audit Pings</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('databases')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all shrink-0 ${
+            activeTab === 'databases'
+              ? 'bg-primary text-on-primary shadow-lg shadow-primary/20'
+              : 'bg-surface-container text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high'
+          }`}
+        >
+          <span className="material-symbols-outlined text-[18px]">database</span>
+          <span>5. Tenant DB Engines (PostgreSQL &amp; MongoDB)</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('google-sheets')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all shrink-0 ${
+            activeTab === 'google-sheets'
+              ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/20'
+              : 'bg-surface-container text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high'
+          }`}
+        >
+          <span className="material-symbols-outlined text-[18px]">table_chart</span>
+          <span>6. Google Sheets Linking &amp; Sync</span>
         </button>
       </div>
 
@@ -1874,6 +1900,20 @@ export const SuperAdminView: React.FC = () => {
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* TAB 5: TENANT-WISE DATABASES (POSTGRESQL & MONGODB) */}
+      {activeTab === 'databases' && (
+        <div className="animate-in fade-in duration-200">
+          <TenantDatabaseManager />
+        </div>
+      )}
+
+      {/* TAB 6: GOOGLE SHEETS LIVE LINKING */}
+      {activeTab === 'google-sheets' && (
+        <div className="animate-in fade-in duration-200">
+          <GoogleSheetsManager />
         </div>
       )}
 

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useGym } from '../context/GymContext';
 
 export const LandingTourView: React.FC = () => {
-  const { setActiveScreen, showToast, currentUser } = useGym();
+  const { setActiveScreen, showToast, currentUser, theme, toggleTheme } = useGym();
   const [calcMembers, setCalcMembers] = useState(1500);
   const [calcStaff, setCalcStaff] = useState(12);
   const [calcLocations, setCalcLocations] = useState(3);
@@ -13,21 +13,43 @@ export const LandingTourView: React.FC = () => {
   const estimatedMonthly = Math.round(calcAnnual ? baseMonthly * 0.8 : baseMonthly);
 
   return (
-    <div className="flex flex-col w-full pb-16 space-y-10 text-on-surface">
-      {/* Top Banner with Quick Access to Sign In & Super Admin */}
-      <div className="flex flex-col sm:flex-row items-center justify-between p-4 bg-surface-container-high/90 rounded-2xl border border-primary/40 gap-4 shadow-xl">
-        <div className="flex items-center gap-2.5 text-xs">
-          <span className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse"></span>
-          <span className="text-on-surface font-semibold">
-            GymOS Enterprise Public Portal &amp; Product Showcase
-          </span>
-          <span className="hidden md:inline text-on-surface-variant font-mono">| Hardware Relay Ready</span>
+    <div className="min-h-screen bg-surface text-on-surface py-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto flex flex-col w-full pb-20 space-y-10">
+      {/* Top Standalone Navigation Bar with Quick Access to Sign In & Super Admin */}
+      <nav className="flex flex-col sm:flex-row items-center justify-between p-4 bg-surface-container-high/90 backdrop-blur-md rounded-2xl border border-outline-variant/30 gap-4 shadow-xl">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-primary to-primary-container flex items-center justify-center text-on-primary font-bold shadow-md shadow-primary/20">
+            <span className="material-symbols-outlined text-[24px]">fitness_center</span>
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="font-headline font-bold text-lg tracking-tight text-on-surface">GymOS</span>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-primary/10 text-primary border border-primary/20 uppercase tracking-widest">
+                Enterprise
+              </span>
+            </div>
+            <div className="text-[11px] text-on-surface-variant flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span>Product Showcase &amp; Portal</span>
+              <span className="hidden md:inline font-mono opacity-60">• Hardware Relay Ready</span>
+            </div>
+          </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5">
+          {/* Theme switcher */}
+          <button
+            onClick={toggleTheme}
+            className="p-2 rounded-xl bg-surface-container hover:bg-surface-bright text-on-surface border border-outline-variant/40 transition-all flex items-center justify-center"
+            title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} mode`}
+          >
+            <span className="material-symbols-outlined text-[18px]">
+              {theme === 'dark' ? 'light_mode' : 'dark_mode'}
+            </span>
+          </button>
+
           <button
             onClick={() => setActiveScreen('login')}
-            className="px-3.5 py-1.5 rounded-xl bg-surface-container hover:bg-surface-bright text-on-surface border border-outline-variant/40 font-semibold text-xs flex items-center gap-1.5 transition-all"
+            className="px-4 py-2 rounded-xl bg-surface-container hover:bg-surface-bright text-on-surface border border-outline-variant/40 font-semibold text-xs flex items-center gap-1.5 transition-all shadow-sm"
           >
             <span className="material-symbols-outlined text-[16px] text-primary">login</span>
             <span>Sign In</span>
@@ -36,7 +58,7 @@ export const LandingTourView: React.FC = () => {
           {currentUser?.role === 'superadmin' && (
             <button
               onClick={() => setActiveScreen('super-admin')}
-              className="px-3.5 py-1.5 rounded-xl bg-primary/20 hover:bg-primary/30 text-primary border border-primary/40 font-semibold text-xs flex items-center gap-1.5 transition-all shadow-md shadow-primary/10"
+              className="px-4 py-2 rounded-xl bg-primary/20 hover:bg-primary/30 text-primary border border-primary/40 font-semibold text-xs flex items-center gap-1.5 transition-all shadow-md shadow-primary/10"
             >
               <span className="material-symbols-outlined text-[16px]">admin_panel_settings</span>
               <span>Super Admin Portal</span>
@@ -45,13 +67,13 @@ export const LandingTourView: React.FC = () => {
 
           <button
             onClick={() => setActiveScreen('dashboard')}
-            className="px-3.5 py-1.5 rounded-xl bg-primary text-on-primary font-semibold text-xs hover:opacity-90 flex items-center gap-1.5 transition-all shadow-md shadow-primary/20"
+            className="px-4 py-2 rounded-xl bg-primary text-on-primary font-semibold text-xs hover:opacity-90 flex items-center gap-1.5 transition-all shadow-md shadow-primary/20"
           >
             <span>Live Club Demo</span>
             <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
           </button>
         </div>
-      </div>
+      </nav>
 
       {/* Hero Section */}
       <section className="relative overflow-hidden py-10 px-8 bg-surface-container-low rounded-3xl border border-outline-variant/30">

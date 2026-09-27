@@ -18,6 +18,10 @@ export const Header: React.FC = () => {
     setActiveScreen,
     activeScreen,
     switchRole,
+    isDemoMode,
+    toggleDemoMode,
+    isLoadingData,
+    refreshData,
   } = useGym();
   const [showBranchMenu, setShowBranchMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -138,6 +142,34 @@ export const Header: React.FC = () => {
 
       {/* Right: Actions, Notifications & Profile */}
       <div className="flex items-center gap-3 relative">
+        {/* Live Postgres vs Demo Mode Indicator */}
+        <button
+          onClick={() => toggleDemoMode()}
+          title={isDemoMode ? 'Running in Mock Demo Mode. Click to switch to Live PostgreSQL.' : 'Connected to Live PostgreSQL. Click to toggle Demo Mode.'}
+          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-mono font-semibold border transition-all cursor-pointer ${
+            isDemoMode
+              ? 'bg-amber-500/15 text-amber-400 border-amber-500/40 hover:bg-amber-500/25'
+              : 'bg-emerald-500/15 text-emerald-400 border-emerald-500/40 hover:bg-emerald-500/25'
+          }`}
+        >
+          <span className={`w-2 h-2 rounded-full ${isDemoMode ? 'bg-amber-400' : 'bg-emerald-400 animate-pulse'}`}></span>
+          <span className="hidden sm:inline">{isDemoMode ? 'DEMO MODE' : 'POSTGRES LIVE'}</span>
+        </button>
+
+        {/* Async Data Sync / Loading Spinner */}
+        {!isDemoMode && (
+          <button
+            onClick={() => refreshData()}
+            disabled={isLoadingData}
+            title="Refresh database records"
+            className="p-2 rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface transition-all border border-outline-variant/30 flex items-center justify-center cursor-pointer disabled:opacity-40"
+          >
+            <span className={`material-symbols-outlined text-[16px] text-primary ${isLoadingData ? 'animate-spin' : ''}`}>
+              sync
+            </span>
+          </button>
+        )}
+
         {/* Light / Dark Mode Toggle Button */}
         <button
           onClick={toggleTheme}

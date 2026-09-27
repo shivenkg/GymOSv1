@@ -96,7 +96,20 @@ export const Sidebar: React.FC = () => {
         { id: 'tenant-rbac', label: 'User RBAC Matrix', icon: 'security', badge: 'RBAC' },
         { id: 'settings', label: 'Facility Settings', icon: 'settings' }
       ]
-    }
+    },
+    ...(isSuperAdmin ? [{
+      id: 'super-admin-group',
+      name: 'Platform Infrastructure',
+      icon: 'shield',
+      badge: 'Root',
+      badgeColor: 'tertiary',
+      primaryScreen: 'super-admin' as ScreenId,
+      description: 'Licensing & DB Diagnostics',
+      children: [
+        { id: 'super-admin' as ScreenId, label: 'License & SaaS Engine', icon: 'key' },
+        { id: 'system-settings' as ScreenId, label: 'Database & Diagnostics', icon: 'database', badge: 'Postgres' }
+      ]
+    }] : [])
   ];
 
   // Auto-expand the module that contains the active screen

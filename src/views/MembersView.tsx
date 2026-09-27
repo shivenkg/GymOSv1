@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useGym } from '../context/GymContext';
 import { Member, MemberStatus } from '../types';
+import { AsyncDataState } from '../components/AsyncDataState';
 
 export const MembersView: React.FC = () => {
   const { members, openModal, checkInMember, renewMember, toggleMemberFreeze, showToast, setActiveScreen } = useGym();
@@ -78,7 +79,7 @@ export const MembersView: React.FC = () => {
         <div className="flex items-center gap-3">
           <button
             onClick={() => openModal('register-member')}
-            className="flex items-center gap-2 bg-primary text-on-primary px-4 py-2.5 rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity shadow-sm"
+            className="flex items-center gap-2 bg-primary text-on-primary px-4 py-2.5 rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity shadow-sm cursor-pointer"
           >
             <span className="material-symbols-outlined text-[18px]">person_add</span>
             <span>Add New Member</span>
@@ -86,7 +87,8 @@ export const MembersView: React.FC = () => {
         </div>
       </div>
 
-      {/* Search and Filter Bar */}
+      <AsyncDataState entityName="Members">
+        {/* Search and Filter Bar */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-surface-container-low p-4 rounded-2xl border border-outline-variant/30">
         {/* Search Input */}
         <div className="relative flex-1 max-w-md">
@@ -264,6 +266,7 @@ export const MembersView: React.FC = () => {
           </div>
         </div>
       </div>
+      </AsyncDataState>
 
       {/* Member Details Drawer Modal */}
       {selectedMember && (

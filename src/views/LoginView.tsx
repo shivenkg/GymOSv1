@@ -3,9 +3,9 @@ import { useGym } from '../context/GymContext';
 import { APP_LOGO } from '../data/mockData';
 
 export const LoginView: React.FC = () => {
-  const { login, setActiveScreen, theme, toggleTheme } = useGym();
-  const [username, setUsername] = useState('admin@gymos.io');
-  const [password, setPassword] = useState('gym123');
+  const { login, setActiveScreen, theme, toggleTheme, isDemoMode, toggleDemoMode, dbHealth } = useGym();
+  const [username, setUsername] = useState(isDemoMode ? 'admin@gymos.io' : 'admin@ironcore.com');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -24,35 +24,38 @@ export const LoginView: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
     setIsSubmitting(true);
 
-    setTimeout(() => {
-      const res = login(username, password);
-      setIsSubmitting(false);
+    try {
+      const res = await login(username, password);
       if (!res.success) {
         setErrorMessage(res.error || 'Authentication failed. Please verify credentials.');
       }
-    }, 350);
+    } catch (err: any) {
+      setErrorMessage(err.message || 'Authentication service error occurred.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const handleFillSuperAdmin = () => {
-    setUsername('superadmin');
-    setPassword('Admin#321');
-    setErrorMessage(null);
-  };
-
-  const handleFillDirector = () => {
+  const handleFillDemoAdmin = () => {
     setUsername('admin@gymos.io');
-    setPassword('gym123');
+    setPassword('demo');
     setErrorMessage(null);
   };
 
-  const handleFillStaff = () => {
+  const handleFillDemoStaff = () => {
     setUsername('staff@gymos.io');
-    setPassword('staff123');
+    setPassword('demo');
+    setErrorMessage(null);
+  };
+
+  const handleFillDemoSuperAdmin = () => {
+    setUsername('superadmin');
+    setPassword('demo');
     setErrorMessage(null);
   };
 
@@ -378,52 +381,77 @@ export const LoginView: React.FC = () => {
               </button>
             </form>
 
-            {/* Quick Demo Logins Section */}
+            {/* Mode & Demo Logins Section */}
             <div className="mt-6 pt-5 border-t border-outline-variant/30">
-              <span className="block text-center text-[10px] text-on-surface-variant uppercase font-mono tracking-widest mb-3">
-                Quick Demonstration Accounts
-              </span>
-
-              <div className="grid grid-cols-2 gap-2.5">
-                <button
-                  type="button"
-                  onClick={handleFillDirector}
-                  className="p-2.5 rounded-xl bg-surface-container hover:bg-surface-container-high border border-outline-variant/30 text-left transition-all group"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-primary group-hover:underline">Tenant Admin</span>
-                    <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded font-mono">Director</span>
-                  </div>
-                  <div className="text-[10px] text-on-surface-variant mt-0.5">admin@gymos.io • gym123</div>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleFillStaff}
-                  className="p-2.5 rounded-xl bg-surface-container hover:bg-surface-container-high border border-outline-variant/30 text-left transition-all group"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-tertiary group-hover:underline">Desk Staff</span>
-                    <span className="text-[10px] bg-tertiary/10 text-tertiary px-1.5 py-0.5 rounded font-mono">Counter</span>
-                  </div>
-                  <div className="text-[10px] text-on-surface-variant mt-0.5">staff@gymos.io • staff123</div>
-                </button>
-              </div>
-
-              {/* Super Admin credential notice */}
-              <div className="mt-3 p-2 rounded-xl bg-surface-container/60 flex items-center justify-between border border-outline-variant/20 text-xs">
-                <span className="text-[11px] text-on-surface-variant flex items-center gap-1.5">
-                  <span className="material-symbols-outlined text-[15px] text-primary">shield</span>
-                  <span>Platform Superadmin Demo:</span>
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-[10px] text-on-surface-variant uppercase font-mono tracking-widest">
+                  Authentication Mode
                 </span>
                 <button
                   type="button"
-                  onClick={handleFillSuperAdmin}
-                  className="text-[11px] font-mono font-bold text-primary hover:underline"
+                  onClick={() => toggleDemoMode()}
+                  className={`text-[11px] font-mono font-semibold px-2 py-0.5 rounded-full border transition-all ${
+                    isDemoMode
+                      ? 'bg-amber-500/15 text-amber-300 border-amber-500/40'
+                      : 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40'
+                  }`}
                 >
-                  superadmin / Admin#321
+                  {isDemoMode ? 'DEMO MODE (OFFLINE)' : 'POSTGRESQL (LIVE)'}
                 </button>
               </div>
+
+              {isDemoMode ? (
+                <div className="space-y-2">
+                  <div className="grid grid-cols-2 gap-2.5">
+                    <button
+                      type="button"
+                      onClick={handleFillDemoAdmin}
+                      className="p-2.5 rounded-xl bg-surface-container hover:bg-surface-container-high border border-outline-variant/30 text-left transition-all group"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-primary group-hover:underline">Tenant Admin</span>
+                        <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded font-mono">Demo</span>
+                      </div>
+                      <div className="text-[10px] text-on-surface-variant mt-0.5">admin@gymos.io</div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleFillDemoStaff}
+                      className="p-2.5 rounded-xl bg-surface-container hover:bg-surface-container-high border border-outline-variant/30 text-left transition-all group"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-tertiary group-hover:underline">Desk Staff</span>
+                        <span className="text-[10px] bg-tertiary/10 text-tertiary px-1.5 py-0.5 rounded font-mono">Demo</span>
+                      </div>
+                      <div className="text-[10px] text-on-surface-variant mt-0.5">staff@gymos.io</div>
+                    </button>
+                  </div>
+
+                  <div className="p-2 rounded-xl bg-surface-container/60 flex items-center justify-between border border-outline-variant/20 text-xs">
+                    <span className="text-[11px] text-on-surface-variant flex items-center gap-1.5">
+                      <span className="material-symbols-outlined text-[15px] text-primary">shield</span>
+                      <span>Demo Superadmin:</span>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={handleFillDemoSuperAdmin}
+                      className="text-[11px] font-mono font-bold text-primary hover:underline"
+                    >
+                      Fill Demo Superadmin
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="p-3 rounded-xl bg-surface-container/50 border border-outline-variant/20 text-xs text-on-surface-variant leading-relaxed">
+                  <div className="flex items-center gap-1.5 text-emerald-400 font-semibold mb-1">
+                    <span className="material-symbols-outlined text-sm">database</span>
+                    <span>Database-Backed Auth Active</span>
+                  </div>
+                  Enter your registered tenant email and password. Use the credentials generated during database seeding (e.g.{' '}
+                  <code className="text-primary font-mono text-[11px]">admin@ironcore.com</code>).
+                </div>
+              )}
             </div>
           </div>
         </div>

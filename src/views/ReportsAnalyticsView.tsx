@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useGym } from '../context/GymContext';
 import { AT_RISK_MEMBERS } from '../data/mockData';
+import { AsyncDataState } from '../components/AsyncDataState';
 
 export const ReportsAnalyticsView: React.FC = () => {
   const { showToast, setActiveScreen } = useGym();
@@ -117,6 +118,7 @@ export const ReportsAnalyticsView: React.FC = () => {
       </div>
 
       {/* Top KPI Summary Cards */}
+      <AsyncDataState entityName="Retention Intelligence">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {/* Card 1 */}
         <div className="bg-surface-container rounded-2xl p-5 flex flex-col justify-between relative overflow-hidden border border-outline-variant/30">
@@ -461,6 +463,7 @@ export const ReportsAnalyticsView: React.FC = () => {
           </div>
         </div>
       </div>
+      </AsyncDataState>
     </div>
   );
 };

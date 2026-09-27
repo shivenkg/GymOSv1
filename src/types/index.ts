@@ -11,7 +11,8 @@ export type ScreenId =
   | 'tenant-rbac'
   | 'landing'
   | 'login'
-  | 'super-admin';
+  | 'super-admin'
+  | 'system-settings';
 
 export type UserRole = 'superadmin' | 'director' | 'manager' | 'staff';
 
@@ -284,3 +285,83 @@ export interface UserRoleAssignment {
   lastActive: string;
   assignedBranchId?: BranchId | 'all';
 }
+
+// ==========================================
+// SuperAdmin Tenant-Wise Database Provisioning
+// ==========================================
+
+export type DatabaseEngine = 'postgres' | 'mongodb';
+
+export type TenantDbIsolationStrategy =
+  | 'dedicated_database'     // Separate database per tenant (e.g. gymos_apex_prod)
+  | 'dedicated_schema'       // Dedicated PostgreSQL schema per tenant (e.g. schema_apex.*)
+  | 'isolated_collection'    // Isolated MongoDB collection prefix per tenant
+  | 'custom_cluster_uri';    // Completely separate customer-hosted database URI / VPC
+
+export interface TenantDatabaseConfig {
+  id: string;
+  tenantId: string;
+  tenantName: string;
+  engine: DatabaseEngine;
+  strategy: TenantDbIsolationStrategy;
+  host: string;
+  port: number;
+  databaseName: string;
+  username: string;
+  password?: string;
+  connectionString?: string;
+  connectionUriMasked: string;
+  sslEnabled: boolean;
+  sslMode: 'require' | 'prefer' | 'verify-full' | 'disable';
+  poolMin: number;
+  poolMax: number;
+  idleTimeoutMs: number;
+  status: 'Connected' | 'Degraded' | 'Provisioning' | 'Offline' | 'Standalone Fallback';
+  latencyMs: number;
+  storageMb: number;
+  collectionsOrTablesCount: number;
+  lastChecked: string;
+  lastMigrationVersion: string;
+  features: {
+    autoBackupEnabled: boolean;
+    cdcEnabled: boolean; // Change Data Capture
+    encryptionAtRest: boolean;
+    readReplicas: number;
+  };
+}
+
+// ==========================================
+// SuperAdmin Google Sheets Bi-Directional Sync
+// ==========================================
+
+export type SheetSyncDirection = 'two_way' | 'gymos_to_sheet' | 'sheet_to_gymos';
+export type SheetSyncFrequency = 'realtime' | '15_min' | 'hourly' | 'daily' | 'manual';
+export type SheetSyncEntity = 'members' | 'attendance' | 'payments' | 'leads' | 'staff';
+
+export interface SheetFieldMapping {
+  sheetColumn: string;
+  gymosField: string;
+  dataType: 'string' | 'number' | 'date' | 'boolean';
+  isRequired: boolean;
+}
+
+export interface GoogleSheetIntegration {
+  id: string;
+  tenantId: string; // Specific tenant ID or 'all' for platform-wide
+  tenantName: string;
+  sheetTitle: string;
+  spreadsheetId: string;
+  sheetUrl: string;
+  tabName: string;
+  direction: SheetSyncDirection;
+  entities: SheetSyncEntity[];
+  frequency: SheetSyncFrequency;
+  status: 'Active' | 'Syncing' | 'Paused' | 'Error';
+  lastSyncedAt?: string;
+  syncedRowsCount: number;
+  webhookSecretToken: string;
+  fieldMappings: SheetFieldMapping[];
+  serviceAccountEmail?: string;
+  errorMessage?: string;
+}
+

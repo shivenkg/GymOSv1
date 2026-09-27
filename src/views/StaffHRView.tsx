@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useGym } from '../context/GymContext';
 import { StaffMember } from '../types';
+import { AsyncDataState } from '../components/AsyncDataState';
 
 export const StaffHRView: React.FC = () => {
   const {
@@ -66,6 +67,7 @@ export const StaffHRView: React.FC = () => {
         </div>
       </div>
 
+      <AsyncDataState entityName="Staff HR">
       {/* KPI Overview Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {/* Card 1 */}
@@ -411,6 +413,7 @@ export const StaffHRView: React.FC = () => {
           </div>
         </div>
       </div>
+      </AsyncDataState>
     </div>
   );
 };
