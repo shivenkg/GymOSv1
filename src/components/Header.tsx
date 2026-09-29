@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useGym } from '../context/GymContext';
 import { BranchId } from '../types';
 
@@ -22,10 +22,51 @@ export const Header: React.FC = () => {
     toggleDemoMode,
     isLoadingData,
     refreshData,
+    members,
+    isSidebarCollapsed,
+    toggleSidebar,
   } = useGym();
   const [showBranchMenu, setShowBranchMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+
+  // Global Member Search State
+  const [globalSearch, setGlobalSearch] = useState('');
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
+
+  // Close search dropdown on click outside or escape
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target as Node)) {
+        setIsSearchFocused(false);
+      }
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsSearchFocused(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
+
+  const matchingMembers = useMemo(() => {
+    const q = globalSearch.trim().toLowerCase();
+    if (!q) return [];
+    return members.filter(
+      (m) =>
+        m.name.toLowerCase().includes(q) ||
+        m.memberCode.toLowerCase().includes(q) ||
+        m.id.toLowerCase().includes(q) ||
+        m.phone.includes(q) ||
+        m.email.toLowerCase().includes(q)
+    ).slice(0, 8);
+  }, [globalSearch, members]);
 
   const notifications = [
     { id: 1, title: 'Geofence Offset Detected', text: 'David Chen checked in 45m outside perimeter', time: '12:55 PM', urgent: true },
@@ -72,32 +113,46 @@ export const Header: React.FC = () => {
   const currentFn = getFunctionInfo();
 
   return (
-    <header className="fixed top-0 left-64 right-0 h-16 bg-surface/85 backdrop-blur-xl border-b border-outline-variant/30 z-40 flex items-center justify-between px-8">
-      {/* Left: Location / Branch Selector & Active Function Breadcrumb */}
-      <div className="flex items-center gap-3 relative">
+    <header className={`fixed top-0 right-0 h-16 bg-surface/85 backdrop-blur-xl border-b border-outline-variant/30 z-40 flex items-center justify-between px-4 sm:px-6 transition-all duration-300 ${
+      isSidebarCollapsed ? 'left-20' : 'left-64'
+    }`}>
+      {/* Left: Burger Button, Location / Branch Selector & Active Function Breadcrumb */}
+      <div className="flex items-center gap-2.5 relative">
+        {/* Burger Button to Toggle Sidebar */}
+        <button
+          onClick={toggleSidebar}
+          className="p-2 rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface transition-all border border-outline-variant/30 flex items-center justify-center cursor-pointer group"
+          title={isSidebarCollapsed ? "Expand Sidebar (Burger Menu)" : "Collapse Sidebar"}
+          aria-label="Toggle Sidebar"
+        >
+          <span className="material-symbols-outlined text-[20px] text-primary transition-transform group-hover:scale-110">
+            {isSidebarCollapsed ? 'menu' : 'menu_open'}
+          </span>
+        </button>
+
         <button
           onClick={() => setShowBranchMenu(!showBranchMenu)}
-          className="flex items-center gap-2 bg-surface-container px-3.5 py-1.5 rounded-xl border border-outline-variant/40 text-xs font-semibold text-on-surface hover:bg-surface-container-high transition-all"
+          className="flex items-center gap-2 bg-surface-container px-3 py-1.5 rounded-xl border border-outline-variant/40 text-xs font-semibold text-on-surface hover:bg-surface-container-high transition-all"
         >
           <span className="material-symbols-outlined text-[16px] text-primary">location_on</span>
-          <span>{currentBranch.name}</span>
+          <span className="hidden sm:inline">{currentBranch.name}</span>
           <span className="material-symbols-outlined text-[16px] text-on-surface-variant">expand_more</span>
         </button>
 
         {/* Function Module Breadcrumb Pill */}
-        <div className="hidden lg:flex items-center gap-2 px-3 py-1 bg-surface-container/70 rounded-xl border border-outline-variant/30 text-xs">
+        <div className="hidden xl:flex items-center gap-2 px-3 py-1 bg-surface-container/70 rounded-xl border border-outline-variant/30 text-xs">
           <span className="text-[10px] font-mono uppercase tracking-wider text-primary font-bold flex items-center gap-1">
             <span className="material-symbols-outlined text-[14px]">{currentFn.icon}</span>
             <span>{currentFn.fn}</span>
           </span>
           <span className="text-on-surface-variant/50 text-[10px]">/</span>
-          <span className="text-on-surface font-medium text-xs truncate max-w-[140px] xl:max-w-[200px]">
+          <span className="text-on-surface font-medium text-xs truncate max-w-[140px]">
             {currentFn.sub}
           </span>
         </div>
 
         {showBranchMenu && (
-          <div className="absolute top-12 left-0 w-64 bg-surface-container-high border border-outline-variant/50 rounded-xl shadow-2xl p-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+          <div className="absolute top-12 left-10 w-64 bg-surface-container-high border border-outline-variant/50 rounded-xl shadow-2xl p-2 z-50 animate-in fade-in zoom-in-95 duration-150">
             <div className="text-[11px] font-semibold text-on-surface-variant uppercase px-3 py-1.5 tracking-wider">
               Select Branch Location
             </div>
@@ -133,11 +188,121 @@ export const Header: React.FC = () => {
           }}
           disabled={isTerminalLocked}
           title="Quick simulate member check-in scan"
-          className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-surface-container hover:bg-primary/10 text-on-surface hover:text-primary text-xs font-medium border border-outline-variant/30 transition-all disabled:opacity-40"
+          className="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-surface-container hover:bg-primary/10 text-on-surface hover:text-primary text-xs font-medium border border-outline-variant/30 transition-all disabled:opacity-40"
         >
           <span className="material-symbols-outlined text-[16px] text-primary">qr_code_scanner</span>
           <span>Quick Scan</span>
         </button>
+      </div>
+
+      {/* Center: Global Member Search Input */}
+      <div ref={searchContainerRef} className="relative flex-1 max-w-xs md:max-w-md mx-3">
+        <div className="relative flex items-center">
+          <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-on-surface-variant">
+            <span className="material-symbols-outlined text-[18px]">search</span>
+          </span>
+          <input
+            type="text"
+            value={globalSearch}
+            onChange={(e) => {
+              setGlobalSearch(e.target.value);
+              setIsSearchFocused(true);
+            }}
+            onFocus={() => setIsSearchFocused(true)}
+            placeholder="Search members by name or ID (e.g. Aarav, #MEM-101)..."
+            className="w-full bg-surface-container/90 hover:bg-surface-container focus:bg-surface-container-high pl-9 pr-8 py-1.5 rounded-xl text-xs text-on-surface placeholder:text-on-surface-variant/60 border border-outline-variant/30 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-all shadow-xs"
+          />
+          {globalSearch && (
+            <button
+              onClick={() => setGlobalSearch('')}
+              className="absolute right-2 text-on-surface-variant hover:text-on-surface p-0.5 rounded-full cursor-pointer"
+              title="Clear search"
+            >
+              <span className="material-symbols-outlined text-[14px]">close</span>
+            </button>
+          )}
+        </div>
+
+        {/* Global Search Results Dropdown Popover */}
+        {isSearchFocused && globalSearch.trim().length > 0 && (
+          <div
+            className="absolute top-11 left-0 right-0 bg-surface-container-high/95 backdrop-blur-md border border-outline-variant/50 rounded-2xl shadow-2xl p-2 z-50 animate-in fade-in zoom-in-95 duration-150 max-h-[380px] overflow-y-auto"
+          >
+            <div className="flex items-center justify-between px-3 py-1.5 text-[11px] font-mono text-on-surface-variant border-b border-outline-variant/20 mb-1">
+              <span>MATCHING MEMBERS ({matchingMembers.length})</span>
+              <span className="text-[10px]">Esc to close</span>
+            </div>
+
+            {matchingMembers.length === 0 ? (
+              <div className="py-6 px-4 text-center">
+                <span className="material-symbols-outlined text-[32px] text-on-surface-variant/40 block mb-1">person_search</span>
+                <p className="text-xs text-on-surface font-medium">No members found for "{globalSearch}"</p>
+                <p className="text-[11px] text-on-surface-variant mt-0.5">Try searching by member name, phone, or #MEM ID</p>
+                <button
+                  onClick={() => {
+                    setGlobalSearch('');
+                    setIsSearchFocused(false);
+                    openModal('register-member');
+                  }}
+                  className="mt-3 px-3 py-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary text-xs font-semibold inline-flex items-center gap-1.5 transition-all cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-[15px]">person_add</span>
+                  <span>Register New Member</span>
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-1">
+                {matchingMembers.map((member) => (
+                  <div
+                    key={member.id}
+                    onClick={() => {
+                      setGlobalSearch('');
+                      setIsSearchFocused(false);
+                      setActiveScreen('members');
+                    }}
+                    className="flex items-center justify-between p-2 rounded-xl hover:bg-surface-container cursor-pointer transition-all group"
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      {member.photoUrl ? (
+                        <img src={member.photoUrl} alt={member.name} className="w-8 h-8 rounded-full object-cover shrink-0" />
+                      ) : (
+                        <div className="w-8 h-8 rounded-full bg-primary/20 text-primary font-bold flex items-center justify-center text-xs shrink-0">
+                          {member.name.charAt(0)}
+                        </div>
+                      )}
+                      <div className="min-w-0 text-left">
+                        <div className="text-xs font-semibold text-on-surface flex items-center gap-1.5">
+                          <span className="truncate">{member.name}</span>
+                          <span className="text-[10px] font-mono px-1.5 py-0.2 bg-surface-container rounded text-primary border border-primary/20">
+                            {member.memberCode}
+                          </span>
+                        </div>
+                        <div className="text-[11px] text-on-surface-variant truncate">
+                          {member.plan} • {member.phone}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold uppercase ${
+                        member.status === 'active'
+                          ? 'bg-emerald-500/15 text-emerald-500'
+                          : member.status === 'expired'
+                          ? 'bg-error/15 text-error'
+                          : 'bg-amber-500/15 text-amber-500'
+                      }`}>
+                        {member.status}
+                      </span>
+                      <span className="material-symbols-outlined text-[16px] text-on-surface-variant group-hover:text-primary transition-colors">
+                        chevron_right
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Right: Actions, Notifications & Profile */}

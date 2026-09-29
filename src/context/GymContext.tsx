@@ -74,6 +74,13 @@ interface GymContextType {
   setBranch: (branchId: BranchId) => void;
   branches: Branch[];
 
+  // Sidebar Collapse State
+  isSidebarCollapsed: boolean;
+  toggleSidebar: () => void;
+  setIsSidebarCollapsed: (collapsed: boolean) => void;
+  isSidebarPinned: boolean;
+  toggleSidebarPinned: () => void;
+
   // Authentication & Users
   currentUser: User | null;
   login: (username: string, password: string) => Promise<{ success: boolean; error?: string; role?: UserRole }>;
@@ -263,7 +270,27 @@ export const GymProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       showToast('Access Restricted', 'Super Admin interface is strictly restricted to platform superadministrators.', 'error');
       return;
     }
+    if (screen === 'landing' && currentUser && currentUser.role !== 'superadmin') {
+      showToast('Showcase Restricted', 'Product showcase is exclusively available to SuperAdmin.', 'info');
+      setActiveScreenRaw('dashboard');
+      return;
+    }
     setActiveScreenRaw(screen);
+  };
+
+  // Sidebar Collapse State - default collapsible (collapsed) per user requirement
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(true);
+  const [isSidebarPinned, setIsSidebarPinned] = useState<boolean>(false);
+
+  const toggleSidebar = () => {
+    setIsSidebarCollapsed(prev => !prev);
+  };
+
+  const toggleSidebarPinned = () => {
+    setIsSidebarPinned(prev => !prev);
+    if (!isSidebarPinned) {
+      setIsSidebarCollapsed(false);
+    }
   };
 
   const [currentBranchId, setCurrentBranchId] = useState<BranchId>('downtown');
@@ -1569,6 +1596,11 @@ export const GymProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         currentBranch,
         setBranch,
         branches: BRANCHES,
+        isSidebarCollapsed,
+        toggleSidebar,
+        setIsSidebarCollapsed,
+        isSidebarPinned,
+        toggleSidebarPinned,
         currentUser,
         login,
         logout,

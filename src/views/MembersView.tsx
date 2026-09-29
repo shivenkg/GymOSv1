@@ -16,15 +16,29 @@ export const MembersView: React.FC = () => {
       member.phone.toLowerCase().includes(searchQuery.toLowerCase()) ||
       member.email.toLowerCase().includes(searchQuery.toLowerCase());
 
-    const matchesStatus = selectedStatus === 'all' || member.status === selectedStatus;
+    let matchesStatus = true;
+    if (selectedStatus === 'all') {
+      matchesStatus = true;
+    } else if (selectedStatus === 'pending') {
+      matchesStatus =
+        member.status === 'pending' ||
+        Boolean(member.expiryDate && new Date(member.expiryDate).getTime() - Date.now() < 7 * 86400000 && member.status !== 'expired');
+    } else {
+      matchesStatus = member.status === selectedStatus;
+    }
     return matchesSearch && matchesStatus;
   });
 
   const counts = {
     all: members.length,
     active: members.filter((m) => m.status === 'active').length,
-    frozen: members.filter((m) => m.status === 'frozen').length,
     expired: members.filter((m) => m.status === 'expired').length,
+    pending: members.filter(
+      (m) =>
+        m.status === 'pending' ||
+        Boolean(m.expiryDate && new Date(m.expiryDate).getTime() - Date.now() < 7 * 86400000 && m.status !== 'expired')
+    ).length,
+    frozen: members.filter((m) => m.status === 'frozen').length,
     cancelled: members.filter((m) => m.status === 'cancelled').length,
   };
 
@@ -108,7 +122,7 @@ export const MembersView: React.FC = () => {
         <div className="flex items-center gap-2 overflow-x-auto pb-1 lg:pb-0 scrollbar-none">
           <button
             onClick={() => setSelectedStatus('all')}
-            className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
+            className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
               selectedStatus === 'all'
                 ? 'bg-primary text-on-primary shadow-sm'
                 : 'bg-surface-container text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high'
@@ -118,17 +132,37 @@ export const MembersView: React.FC = () => {
           </button>
           <button
             onClick={() => setSelectedStatus('active')}
-            className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
+            className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
               selectedStatus === 'active'
-                ? 'bg-primary text-on-primary shadow-sm'
+                ? 'bg-emerald-600 text-white shadow-sm'
                 : 'bg-surface-container text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high'
             }`}
           >
-            Active <span className="ml-1 px-1.5 py-0.5 bg-surface-container-high rounded-full text-[10px]">{counts.active}</span>
+            Active <span className="ml-1 px-1.5 py-0.5 bg-surface-container-high/80 rounded-full text-[10px]">{counts.active}</span>
+          </button>
+          <button
+            onClick={() => setSelectedStatus('expired')}
+            className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
+              selectedStatus === 'expired'
+                ? 'bg-error text-white shadow-sm'
+                : 'bg-surface-container text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high'
+            }`}
+          >
+            Expired <span className="ml-1 px-1.5 py-0.5 bg-surface-container-high/80 rounded-full text-[10px]">{counts.expired}</span>
+          </button>
+          <button
+            onClick={() => setSelectedStatus('pending')}
+            className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
+              selectedStatus === 'pending'
+                ? 'bg-amber-600 text-white shadow-sm'
+                : 'bg-surface-container text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high'
+            }`}
+          >
+            Pending <span className="ml-1 px-1.5 py-0.5 bg-surface-container-high/80 rounded-full text-[10px]">{counts.pending}</span>
           </button>
           <button
             onClick={() => setSelectedStatus('frozen')}
-            className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
+            className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
               selectedStatus === 'frozen'
                 ? 'bg-primary text-on-primary shadow-sm'
                 : 'bg-surface-container text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high'
@@ -137,18 +171,8 @@ export const MembersView: React.FC = () => {
             Frozen <span className="ml-1 px-1.5 py-0.5 bg-surface-container-high rounded-full text-[10px]">{counts.frozen}</span>
           </button>
           <button
-            onClick={() => setSelectedStatus('expired')}
-            className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
-              selectedStatus === 'expired'
-                ? 'bg-primary text-on-primary shadow-sm'
-                : 'bg-surface-container text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high'
-            }`}
-          >
-            Expired <span className="ml-1 px-1.5 py-0.5 bg-surface-container-high rounded-full text-[10px]">{counts.expired}</span>
-          </button>
-          <button
             onClick={() => setSelectedStatus('cancelled')}
-            className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
+            className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
               selectedStatus === 'cancelled'
                 ? 'bg-primary text-on-primary shadow-sm'
                 : 'bg-surface-container text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high'

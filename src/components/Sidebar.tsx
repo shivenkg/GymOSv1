@@ -31,7 +31,11 @@ export const Sidebar: React.FC = () => {
     currentUser,
     logout,
     theme,
-    toggleTheme
+    toggleTheme,
+    isSidebarCollapsed,
+    toggleSidebar,
+    isSidebarPinned,
+    toggleSidebarPinned,
   } = useGym();
 
   const isSuperAdmin = currentUser?.role === 'superadmin';
@@ -135,52 +139,101 @@ export const Sidebar: React.FC = () => {
   };
 
   return (
-    <aside className="fixed left-0 top-0 h-full w-64 bg-surface-container-low z-50 flex flex-col pt-5 pb-5 border-r border-outline-variant/30 select-none">
-      {/* Brand Logo Header */}
-      <div 
-        className="px-5 mb-5 flex items-center gap-3 cursor-pointer group"
-        onClick={() => setActiveScreen('dashboard')}
-      >
-        <img
-          alt="GymOS Logo"
-          className="h-8 w-auto object-contain transition-transform group-hover:scale-105"
-          src={APP_LOGO}
-        />
-        <div>
-          <span className="text-xl font-headline font-bold text-primary tracking-tight">GymOS</span>
-          <span className="block text-[9px] text-on-surface-variant font-mono uppercase tracking-widest leading-none mt-0.5">
-            ERP &amp; Operations
-          </span>
+    <aside className={`fixed left-0 top-0 h-full bg-surface-container-low z-50 flex flex-col pt-4 pb-4 border-r border-outline-variant/30 select-none transition-all duration-300 ease-in-out ${
+      isSidebarCollapsed ? 'w-20' : 'w-64'
+    }`}>
+      {/* Brand Logo Header & Pin / Collapse Button */}
+      <div className={`px-4 mb-4 flex items-center ${isSidebarCollapsed ? 'justify-center' : 'justify-between'}`}>
+        <div 
+          className="flex items-center gap-2.5 cursor-pointer group min-w-0"
+          onClick={() => setActiveScreen('dashboard')}
+          title="GymOS Dashboard"
+        >
+          <img
+            alt="GymOS Logo"
+            className="h-8 w-auto object-contain transition-transform group-hover:scale-105 shrink-0"
+            src={APP_LOGO}
+          />
+          {!isSidebarCollapsed && (
+            <div className="truncate">
+              <span className="text-xl font-headline font-bold text-primary tracking-tight truncate block">GymOS</span>
+              <span className="block text-[9px] text-on-surface-variant font-mono uppercase tracking-widest leading-none mt-0.5 truncate">
+                ERP &amp; Operations
+              </span>
+            </div>
+          )}
         </div>
+
+        {/* Pin / Collapse Actions (Only shown when expanded or hover) */}
+        {!isSidebarCollapsed && (
+          <div className="flex items-center gap-1">
+            <button
+              onClick={toggleSidebarPinned}
+              title={isSidebarPinned ? "Pinned: Always expanded" : "Pin sidebar expanded"}
+              className={`p-1.5 rounded-lg transition-all ${
+                isSidebarPinned
+                  ? 'bg-primary/20 text-primary'
+                  : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container'
+              }`}
+            >
+              <span className={`material-symbols-outlined text-[16px] ${isSidebarPinned ? 'fill-1' : ''}`}>
+                push_pin
+              </span>
+            </button>
+            <button
+              onClick={toggleSidebar}
+              title="Collapse Sidebar"
+              className="p-1.5 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-all"
+            >
+              <span className="material-symbols-outlined text-[18px]">chevron_left</span>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Main Navigation Links - Grouped by Function */}
-      <nav className="flex-1 px-3 space-y-1.5 overflow-y-auto">
+      <nav className={`flex-1 space-y-1.5 overflow-y-auto ${isSidebarCollapsed ? 'px-2' : 'px-3'}`}>
         {/* Super Admin Command Center Link - ONLY VISIBLE TO SUPER ADMIN */}
         {isSuperAdmin && (
-          <button
-            onClick={() => setActiveScreen('super-admin')}
-            className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all text-xs font-semibold mb-2 ${
-              activeScreen === 'super-admin'
-                ? 'bg-primary text-on-primary shadow-lg shadow-primary/20'
-                : 'bg-primary/15 text-primary border border-primary/30 hover:bg-primary/25'
-            }`}
-          >
-            <div className="flex items-center gap-2.5">
-              <span className="material-symbols-outlined text-[18px]">admin_panel_settings</span>
-              <span>Super Admin Platform</span>
-            </div>
-            <span className={`text-[9px] px-1.5 py-0.5 rounded font-mono font-bold ${
-              activeScreen === 'super-admin' ? 'bg-black/30 text-white' : 'bg-primary/20 text-primary'
-            }`}>
-              SaaS
-            </span>
-          </button>
+          <div className="relative group">
+            <button
+              onClick={() => setActiveScreen('super-admin')}
+              className={`w-full flex items-center ${
+                isSidebarCollapsed ? 'justify-center p-2.5' : 'justify-between px-3 py-2'
+              } rounded-xl transition-all text-xs font-semibold mb-2 ${
+                activeScreen === 'super-admin'
+                  ? 'bg-primary text-on-primary shadow-lg shadow-primary/20'
+                  : 'bg-primary/15 text-primary border border-primary/30 hover:bg-primary/25'
+              }`}
+              title={isSidebarCollapsed ? "Super Admin Platform (SaaS)" : undefined}
+            >
+              <div className="flex items-center gap-2.5">
+                <span className="material-symbols-outlined text-[19px]">admin_panel_settings</span>
+                {!isSidebarCollapsed && <span>Super Admin Platform</span>}
+              </div>
+              {!isSidebarCollapsed && (
+                <span className={`text-[9px] px-1.5 py-0.5 rounded font-mono font-bold ${
+                  activeScreen === 'super-admin' ? 'bg-black/30 text-white' : 'bg-primary/20 text-primary'
+                }`}>
+                  SaaS
+                </span>
+              )}
+            </button>
+
+            {/* Collapsed Mode Tooltip */}
+            {isSidebarCollapsed && (
+              <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 bg-surface-container-high px-2.5 py-1.5 rounded-xl border border-outline-variant/40 shadow-xl text-xs font-semibold text-primary whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50">
+                Super Admin Platform
+              </div>
+            )}
+          </div>
         )}
 
-        <div className="px-2 py-1 text-[10px] font-mono uppercase tracking-wider text-on-surface-variant/80 font-bold">
-          Core Functions
-        </div>
+        {!isSidebarCollapsed && (
+          <div className="px-2 py-1 text-[10px] font-mono uppercase tracking-wider text-on-surface-variant/80 font-bold">
+            Core Functions
+          </div>
+        )}
 
         {functionModules.map((module) => {
           const hasChildren = Boolean(module.children && module.children.length > 0);
@@ -190,56 +243,96 @@ export const Sidebar: React.FC = () => {
           const isExpanded = expandedModules[module.id] ?? false;
 
           return (
-            <div key={module.id} className="space-y-0.5">
+            <div key={module.id} className="space-y-0.5 relative group">
               {/* Function Module Button */}
               <button
                 onClick={() => {
+                  if (isSidebarCollapsed) {
+                    setActiveScreen(module.primaryScreen);
+                    return;
+                  }
                   if (hasChildren) {
                     toggleModule(module.id, isModuleActive ? undefined : module.primaryScreen);
                   } else {
                     setActiveScreen(module.primaryScreen);
                   }
                 }}
-                className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all text-xs font-medium ${
+                className={`w-full flex items-center ${
+                  isSidebarCollapsed ? 'justify-center p-2.5' : 'justify-between px-3 py-2'
+                } rounded-xl transition-all text-xs font-medium ${
                   isModuleActive
-                    ? 'bg-primary/15 text-primary font-semibold border border-primary/25'
+                    ? 'bg-primary/15 text-primary font-semibold border border-primary/25 shadow-xs'
                     : 'text-on-surface hover:bg-surface-container-high'
                 }`}
+                title={isSidebarCollapsed ? `${module.name} - ${module.description}` : undefined}
               >
                 <div className="flex items-center gap-2.5 truncate">
-                  <span className={`material-symbols-outlined text-[19px] ${
+                  <span className={`material-symbols-outlined text-[20px] shrink-0 ${
                     isModuleActive ? 'text-primary' : 'text-on-surface-variant'
                   }`}>
                     {module.icon}
                   </span>
-                  <div className="text-left truncate">
-                    <span className="truncate block font-semibold">{module.name}</span>
+                  {!isSidebarCollapsed && (
+                    <div className="text-left truncate">
+                      <span className="truncate block font-semibold">{module.name}</span>
+                    </div>
+                  )}
+                </div>
+
+                {!isSidebarCollapsed && (
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    {module.badge && (
+                      <span className={`text-[9px] px-1.5 py-0.2 rounded-full font-mono font-bold ${
+                        module.badgeColor === 'tertiary'
+                          ? 'bg-tertiary/20 text-tertiary'
+                          : 'bg-primary/20 text-primary'
+                      }`}>
+                        {module.badge}
+                      </span>
+                    )}
+
+                    {hasChildren && (
+                      <span className={`material-symbols-outlined text-[16px] text-on-surface-variant transition-transform duration-200 ${
+                        isExpanded ? 'rotate-180 text-primary' : ''
+                      }`}>
+                        expand_more
+                      </span>
+                    )}
                   </div>
-                </div>
-
-                <div className="flex items-center gap-1.5 shrink-0">
-                  {module.badge && (
-                    <span className={`text-[9px] px-1.5 py-0.2 rounded-full font-mono font-bold ${
-                      module.badgeColor === 'tertiary'
-                        ? 'bg-tertiary/20 text-tertiary'
-                        : 'bg-primary/20 text-primary'
-                    }`}>
-                      {module.badge}
-                    </span>
-                  )}
-
-                  {hasChildren && (
-                    <span className={`material-symbols-outlined text-[16px] text-on-surface-variant transition-transform duration-200 ${
-                      isExpanded ? 'rotate-180 text-primary' : ''
-                    }`}>
-                      expand_more
-                    </span>
-                  )}
-                </div>
+                )}
               </button>
 
-              {/* Sub-Items / Consolidated Screens */}
-              {hasChildren && isExpanded && (
+              {/* Collapsed Mode Popover Tooltip */}
+              {isSidebarCollapsed && (
+                <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 bg-surface-container-high p-2.5 rounded-xl border border-outline-variant/40 shadow-xl text-xs whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50 min-w-[140px]">
+                  <div className="font-semibold text-on-surface">{module.name}</div>
+                  {module.description && (
+                    <div className="text-[10px] text-on-surface-variant mt-0.5">{module.description}</div>
+                  )}
+                  {hasChildren && (
+                    <div className="mt-2 pt-1.5 border-t border-outline-variant/30 space-y-1">
+                      {module.children?.map(c => (
+                        <div
+                          key={c.id}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActiveScreen(c.id);
+                          }}
+                          className={`text-[11px] px-1.5 py-0.5 rounded cursor-pointer pointer-events-auto flex items-center justify-between ${
+                            activeScreen === c.id ? 'text-primary font-bold bg-primary/10' : 'text-on-surface hover:text-primary'
+                          }`}
+                        >
+                          <span>{c.label}</span>
+                          {c.badge && <span className="text-[9px] opacity-70 font-mono">{c.badge}</span>}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Sub-Items / Consolidated Screens in Expanded Mode */}
+              {!isSidebarCollapsed && hasChildren && isExpanded && (
                 <div className="pl-6 pr-1 py-0.5 space-y-0.5 border-l-2 border-primary/30 ml-4 animate-in fade-in duration-150">
                   {module.children?.map((child) => {
                     const isChildActive = activeScreen === child.id;
@@ -279,98 +372,124 @@ export const Sidebar: React.FC = () => {
         })}
       </nav>
 
-      {/* Bottom Section: Tour Showcase & Live Terminal Status */}
-      <div className="px-3 pt-3 mt-auto border-t border-outline-variant/30 space-y-2.5">
-        {/* Public Showcase / Tour Link */}
-        <button
-          onClick={() => setActiveScreen('landing')}
-          className={`w-full flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-medium transition-all ${
-            activeScreen === 'landing'
-              ? 'bg-primary/20 text-primary border border-primary/30'
-              : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high'
-          }`}
-        >
-          <span className="material-symbols-outlined text-[16px] text-tertiary">rocket_launch</span>
-          <div className="text-left flex-1 truncate">
-            <div className="font-semibold text-on-surface text-[11px]">Product Showcase</div>
-          </div>
-          <span className="material-symbols-outlined text-[14px]">chevron_right</span>
-        </button>
+      {/* Bottom Section: Tour Showcase (Super Admin ONLY) & Live Terminal Status */}
+      <div className={`pt-2.5 mt-auto border-t border-outline-variant/30 space-y-2 ${isSidebarCollapsed ? 'px-2' : 'px-3'}`}>
+        {/* Public Showcase / Tour Link - ONLY FOR SUPER ADMIN */}
+        {isSuperAdmin && (
+          <button
+            onClick={() => setActiveScreen('landing')}
+            className={`w-full flex items-center ${
+              isSidebarCollapsed ? 'justify-center p-2' : 'gap-2 px-3 py-1.5'
+            } rounded-xl text-xs font-medium transition-all ${
+              activeScreen === 'landing'
+                ? 'bg-primary/20 text-primary border border-primary/30'
+                : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high'
+            }`}
+            title="Product Showcase (Super Admin Only)"
+          >
+            <span className="material-symbols-outlined text-[18px] text-tertiary">rocket_launch</span>
+            {!isSidebarCollapsed && (
+              <>
+                <div className="text-left flex-1 truncate">
+                  <div className="font-semibold text-on-surface text-[11px]">Product Showcase</div>
+                </div>
+                <span className="material-symbols-outlined text-[14px]">chevron_right</span>
+              </>
+            )}
+          </button>
+        )}
 
         {/* Live Terminal Mini Status Card */}
-        <div className="bg-surface-container p-2.5 rounded-xl border border-outline-variant/20">
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-[10px] text-on-surface-variant font-medium">Gate Terminal #04</span>
-            <span className={`flex items-center gap-1 text-[9px] font-semibold px-1.5 py-0.2 rounded-full ${
-              isTerminalLocked ? 'bg-error/20 text-error' : 'bg-primary/20 text-primary'
-            }`}>
-              <span className={`w-1.5 h-1.5 rounded-full ${isTerminalLocked ? 'bg-error' : 'bg-primary animate-pulse'}`}></span>
-              {isTerminalLocked ? 'Locked' : 'Armed'}
-            </span>
-          </div>
-          <div className="flex items-center justify-between text-[10px] text-on-surface">
-            <span>Capacity</span>
-            <span className="font-mono font-bold text-primary">{liveOccupancy} / {maxCapacity}</span>
-          </div>
-          <div className="w-full bg-surface-container-highest h-1 rounded-full mt-1 overflow-hidden">
-            <div
-              className="bg-primary h-full rounded-full transition-all duration-500"
-              style={{ width: `${Math.min(100, (liveOccupancy / maxCapacity) * 100)}%` }}
-            ></div>
-          </div>
+        <div className={`bg-surface-container rounded-xl border border-outline-variant/20 ${
+          isSidebarCollapsed ? 'p-2 flex flex-col items-center justify-center' : 'p-2.5'
+        }`}>
+          {isSidebarCollapsed ? (
+            <div className="flex flex-col items-center gap-1" title={`Terminal #04: ${liveOccupancy}/${maxCapacity} Inside`}>
+              <span className={`w-2 h-2 rounded-full ${isTerminalLocked ? 'bg-error' : 'bg-primary animate-pulse'}`}></span>
+              <span className="text-[10px] font-mono font-bold text-primary">{liveOccupancy}</span>
+            </div>
+          ) : (
+            <>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[10px] text-on-surface-variant font-medium">Gate Terminal #04</span>
+                <span className={`flex items-center gap-1 text-[9px] font-semibold px-1.5 py-0.2 rounded-full ${
+                  isTerminalLocked ? 'bg-error/20 text-error' : 'bg-primary/20 text-primary'
+                }`}>
+                  <span className={`w-1.5 h-1.5 rounded-full ${isTerminalLocked ? 'bg-error' : 'bg-primary animate-pulse'}`}></span>
+                  {isTerminalLocked ? 'Locked' : 'Armed'}
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-[10px] text-on-surface">
+                <span>Capacity</span>
+                <span className="font-mono font-bold text-primary">{liveOccupancy} / {maxCapacity}</span>
+              </div>
+              <div className="w-full bg-surface-container-highest h-1 rounded-full mt-1 overflow-hidden">
+                <div
+                  className="bg-primary h-full rounded-full transition-all duration-500"
+                  style={{ width: `${Math.min(100, (liveOccupancy / maxCapacity) * 100)}%` }}
+                ></div>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Current User Session Bar */}
         <div className="pt-2 border-t border-outline-variant/30 flex items-center justify-between">
           {currentUser ? (
-            <div className="flex items-center justify-between w-full">
+            <div className={`flex items-center ${isSidebarCollapsed ? 'justify-center w-full' : 'justify-between w-full'}`}>
               <div className="flex items-center gap-2 overflow-hidden">
                 <div className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs shrink-0 ${
                   currentUser.role === 'superadmin' ? 'bg-primary text-on-primary' : 'bg-surface-container-highest text-on-surface'
-                }`}>
+                }`} title={`${currentUser.name} (${currentUser.role})`}>
                   {currentUser.role === 'superadmin' ? (
                     <span className="material-symbols-outlined text-[16px]">shield</span>
                   ) : (
                     currentUser.name.charAt(0)
                   )}
                 </div>
-                <div className="truncate">
-                  <div className="text-xs font-semibold text-on-surface truncate">
-                    {currentUser.role === 'superadmin' ? 'Super Admin' : currentUser.name}
+                {!isSidebarCollapsed && (
+                  <div className="truncate">
+                    <div className="text-xs font-semibold text-on-surface truncate">
+                      {currentUser.role === 'superadmin' ? 'Super Admin' : currentUser.name}
+                    </div>
+                    <div className="text-[9px] text-on-surface-variant uppercase font-mono tracking-wider">
+                      {currentUser.role}
+                    </div>
                   </div>
-                  <div className="text-[9px] text-on-surface-variant uppercase font-mono tracking-wider">
-                    {currentUser.role}
-                  </div>
+                )}
+              </div>
+
+              {!isSidebarCollapsed && (
+                <div className="flex items-center gap-1 shrink-0">
+                  <button
+                    onClick={toggleTheme}
+                    title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+                    className="p-1.5 rounded-lg text-on-surface-variant hover:text-primary hover:bg-surface-container transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">
+                      {theme === 'dark' ? 'light_mode' : 'dark_mode'}
+                    </span>
+                  </button>
+
+                  <button
+                    onClick={logout}
+                    title="Sign Out"
+                    className="p-1.5 rounded-lg text-on-surface-variant hover:text-error hover:bg-error/15 transition-colors shrink-0"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">logout</span>
+                  </button>
                 </div>
-              </div>
-
-              <div className="flex items-center gap-1 shrink-0">
-                <button
-                  onClick={toggleTheme}
-                  title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-                  className="p-1.5 rounded-lg text-on-surface-variant hover:text-primary hover:bg-surface-container transition-colors"
-                >
-                  <span className="material-symbols-outlined text-[16px]">
-                    {theme === 'dark' ? 'light_mode' : 'dark_mode'}
-                  </span>
-                </button>
-
-                <button
-                  onClick={logout}
-                  title="Sign Out"
-                  className="p-1.5 rounded-lg text-on-surface-variant hover:text-error hover:bg-error/15 transition-colors shrink-0"
-                >
-                  <span className="material-symbols-outlined text-[16px]">logout</span>
-                </button>
-              </div>
+              )}
             </div>
           ) : (
             <button
               onClick={() => setActiveScreen('login')}
-              className="w-full py-1.5 rounded-xl bg-primary text-on-primary text-xs font-semibold hover:opacity-90 transition-all text-center flex items-center justify-center gap-1.5"
+              className={`w-full py-1.5 rounded-xl bg-primary text-on-primary text-xs font-semibold hover:opacity-90 transition-all text-center flex items-center justify-center gap-1.5 ${
+                isSidebarCollapsed ? 'px-1' : ''
+              }`}
             >
               <span className="material-symbols-outlined text-[16px]">login</span>
-              <span>Sign In</span>
+              {!isSidebarCollapsed && <span>Sign In</span>}
             </button>
           )}
         </div>

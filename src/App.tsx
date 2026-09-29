@@ -26,7 +26,7 @@ import { TenantAdminRBACView } from './views/TenantAdminRBACView';
 import { SystemSettingsView } from './views/SystemSettingsView';
 
 const MainContent: React.FC = () => {
-  const { activeScreen, currentUser } = useGym();
+  const { activeScreen, currentUser, isSidebarCollapsed } = useGym();
 
   // Full screen dedicated login experience
   if (activeScreen === 'login') {
@@ -52,9 +52,9 @@ const MainContent: React.FC = () => {
   return (
     <div className="min-h-screen bg-surface text-on-surface">
       <Sidebar />
-      <div className="pl-64">
+      <div className={`transition-all duration-300 ${isSidebarCollapsed ? 'pl-20' : 'pl-64'}`}>
         <Header />
-        <main className="relative pt-20 px-8 min-h-screen bg-surface">
+        <main className="relative pt-20 px-4 sm:px-8 min-h-screen bg-surface">
           {activeScreen === 'dashboard' && <DashboardOverview />}
           {activeScreen === 'members' && <MembersView />}
           {activeScreen === 'attendance' && <AttendanceView />}

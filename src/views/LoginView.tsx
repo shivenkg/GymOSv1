@@ -78,8 +78,12 @@ export const LoginView: React.FC = () => {
       {/* Top Header Navigation */}
       <div className="max-w-7xl w-full mx-auto flex items-center justify-between z-20 pb-4">
         <div 
-          onClick={() => setActiveScreen('landing')}
-          className="flex items-center gap-3 cursor-pointer group"
+          onClick={() => {
+            if (username.toLowerCase().includes('superadmin')) {
+              setActiveScreen('landing');
+            }
+          }}
+          className="flex items-center gap-3 group"
         >
           <img
             alt="GymOS Logo"
@@ -107,13 +111,15 @@ export const LoginView: React.FC = () => {
             </span>
           </button>
 
-          <button
-            onClick={() => setActiveScreen('landing')}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-surface-container text-xs font-medium text-on-surface hover:bg-surface-container-high transition-all border border-outline-variant/30"
-          >
-            <span className="material-symbols-outlined text-[16px]">arrow_back</span>
-            <span>Back to Showcase</span>
-          </button>
+          {username.toLowerCase().includes('superadmin') && (
+            <button
+              onClick={() => setActiveScreen('landing')}
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-primary/10 text-xs font-medium text-primary hover:bg-primary/20 transition-all border border-primary/30"
+            >
+              <span className="material-symbols-outlined text-[16px]">rocket_launch</span>
+              <span>Product Showcase</span>
+            </button>
+          )}
         </div>
       </div>
 

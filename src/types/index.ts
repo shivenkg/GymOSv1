@@ -99,7 +99,7 @@ export type MembershipPlan =
   | 'Standard Semi-Annual'
   | 'Day Pass';
 
-export type MemberStatus = 'active' | 'frozen' | 'expired' | 'cancelled';
+export type MemberStatus = 'active' | 'frozen' | 'expired' | 'cancelled' | 'pending';
 
 export interface Member {
   id: string;
