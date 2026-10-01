@@ -52,7 +52,7 @@ const INITIAL_REVIEWS: ReviewItem[] = [
     city: 'Chicago, IL',
     rating: 5,
     date: '2 weeks ago',
-    quote: 'Class capacity tracking and real-time expense monitoring gave us total clarity on where the money goes. Revenue and profit charts are cleaner than any $200/month SaaS we ever used.',
+    quote: 'Class capacity tracking and real-time expense monitoring gave us total clarity on where the money goes. Revenue and profit charts are cleaner than any ₹15,000/month SaaS we ever used.',
     verified: true,
   },
   {
@@ -96,21 +96,21 @@ const PLAN_PRICING: Record<
 > = {
   starter: {
     INR: { monthly: 2500, yearly: 2000, symbol: '₹', formattedMonthly: '₹2,500', formattedYearly: '₹2,000', annualBillingTotal: '₹24,000', annualSavings: 'Save ₹6,000/yr' },
-    USD: { monthly: 29, yearly: 23, symbol: '$', formattedMonthly: '$29', formattedYearly: '$23', annualBillingTotal: '$276', annualSavings: 'Save $72/yr' },
+    USD: { monthly: 2500, yearly: 2000, symbol: '₹', formattedMonthly: '₹2,500', formattedYearly: '₹2,000', annualBillingTotal: '₹24,000', annualSavings: 'Save ₹6,000/yr' },
     GBP: { monthly: 24, yearly: 19, symbol: '£', formattedMonthly: '£24', formattedYearly: '£19', annualBillingTotal: '£228', annualSavings: 'Save £60/yr' },
     EUR: { monthly: 27, yearly: 21, symbol: '€', formattedMonthly: '€27', formattedYearly: '€21', annualBillingTotal: '€252', annualSavings: 'Save €72/yr' },
     AED: { monthly: 109, yearly: 87, symbol: 'د.إ', formattedMonthly: '109 د.إ', formattedYearly: '87 د.إ', annualBillingTotal: '1,044 د.إ', annualSavings: 'Save 264 د.إ/yr' },
   },
   growth: {
     INR: { monthly: 4000, yearly: 3200, symbol: '₹', formattedMonthly: '₹4,000', formattedYearly: '₹3,200', annualBillingTotal: '₹38,400', annualSavings: 'Save ₹9,600/yr' },
-    USD: { monthly: 49, yearly: 39, symbol: '$', formattedMonthly: '$49', formattedYearly: '$39', annualBillingTotal: '$468', annualSavings: 'Save $120/yr' },
+    USD: { monthly: 4000, yearly: 3200, symbol: '₹', formattedMonthly: '₹4,000', formattedYearly: '₹3,200', annualBillingTotal: '₹38,400', annualSavings: 'Save ₹9,600/yr' },
     GBP: { monthly: 39, yearly: 31, symbol: '£', formattedMonthly: '£39', formattedYearly: '£31', annualBillingTotal: '£372', annualSavings: 'Save £96/yr' },
     EUR: { monthly: 45, yearly: 36, symbol: '€', formattedMonthly: '€45', formattedYearly: '€36', annualBillingTotal: '€432', annualSavings: 'Save €108/yr' },
     AED: { monthly: 179, yearly: 143, symbol: 'د.إ', formattedMonthly: '179 د.إ', formattedYearly: '143 د.إ', annualBillingTotal: '1,716 د.إ', annualSavings: 'Save 432 د.إ/yr' },
   },
   pro: {
     INR: { monthly: 7000, yearly: 5600, symbol: '₹', formattedMonthly: '₹7,000', formattedYearly: '₹5,600', annualBillingTotal: '₹67,200', annualSavings: 'Save ₹16,800/yr' },
-    USD: { monthly: 89, yearly: 71, symbol: '$', formattedMonthly: '$89', formattedYearly: '$71', annualBillingTotal: '$852', annualSavings: 'Save $216/yr' },
+    USD: { monthly: 7000, yearly: 5600, symbol: '₹', formattedMonthly: '₹7,000', formattedYearly: '₹5,600', annualBillingTotal: '₹67,200', annualSavings: 'Save ₹16,800/yr' },
     GBP: { monthly: 69, yearly: 55, symbol: '£', formattedMonthly: '£69', formattedYearly: '£55', annualBillingTotal: '£660', annualSavings: 'Save £168/yr' },
     EUR: { monthly: 82, yearly: 65, symbol: '€', formattedMonthly: '€82', formattedYearly: '€65', annualBillingTotal: '€780', annualSavings: 'Save €204/yr' },
     AED: { monthly: 329, yearly: 263, symbol: 'د.إ', formattedMonthly: '329 د.إ', formattedYearly: '263 د.إ', annualBillingTotal: '3,156 د.إ', annualSavings: 'Save 792 د.إ/yr' },
@@ -119,21 +119,20 @@ const PLAN_PRICING: Record<
 
 const currencyDetails: Record<CurrencyCode, { flag: string; label: string; symbol: string; singlePrice: string; proPrice: string; subtitle: string }> = {
   INR: { flag: '🇮🇳', label: 'IN INR', symbol: '₹', singlePrice: '₹3,999', proPrice: '₹7,999', subtitle: 'Lifetime License • Instant UPI & Card Activation' },
-  USD: { flag: '🇺🇸', label: 'US USD', symbol: '$', singlePrice: '$49', proPrice: '$99', subtitle: 'One-time payment • Free lifetime updates' },
+  USD: { flag: '🇺🇸', label: 'US USD', symbol: '₹', singlePrice: '₹3,999', proPrice: '₹7,999', subtitle: 'One-time payment • Free lifetime updates' },
   GBP: { flag: '🇬🇧', label: 'GB GBP', symbol: '£', singlePrice: '£39', proPrice: '£79', subtitle: 'One-off fee • Zero recurring subscriptions' },
   AED: { flag: '🇦🇪', label: 'AE AED', symbol: 'د.إ', singlePrice: '179 د.إ', proPrice: '359 د.إ', subtitle: 'Single purchase • Works offline locally' },
   EUR: { flag: '🇪🇺', label: 'EU EUR', symbol: '€', singlePrice: '€45', proPrice: '€89', subtitle: 'Einmalige Zahlung • Keine monatlichen Kosten' },
 };
 
 export const LandingTourView: React.FC = () => {
-  const { setActiveScreen, showToast, theme, toggleTheme } = useGym();
+  const { setActiveScreen, showToast, theme, toggleTheme, landingCms } = useGym();
 
   // Pricing Billing Cycle Toggle (Monthly vs Yearly matching User Image)
   const [pricingCycle, setPricingCycle] = useState<'monthly' | 'yearly'>('monthly');
 
   // Currency Selector State matching Image Inspiration (IN INR)
   const [selectedCurrency, setSelectedCurrency] = useState<CurrencyCode>('INR');
-  const [isCurrencyDropdownOpen, setIsCurrencyDropdownOpen] = useState(false);
 
   // Interactive ROI & Plan Calculator
   const [pricingMembersSlider, setPricingMembersSlider] = useState<number>(180);
@@ -646,7 +645,7 @@ export const LandingTourView: React.FC = () => {
                   'info'
                 );
               }}
-              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all shadow-xs cursor-pointer group border ${
+              className={`h-9 flex items-center gap-2 px-3.5 rounded-full text-xs font-semibold transition-all shadow-xs cursor-pointer group border ${
                 theme === 'dark'
                   ? 'bg-[#1c1c1e] hover:bg-[#2c2c2e] text-white border-white/10'
                   : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-300'
@@ -663,57 +662,10 @@ export const LandingTourView: React.FC = () => {
               </span>
             </button>
 
-            {/* Currency Selector Pill */}
-            <div className="relative">
-              <button
-                onClick={() => setIsCurrencyDropdownOpen(!isCurrencyDropdownOpen)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all shadow-xs cursor-pointer border ${
-                  theme === 'dark'
-                    ? 'bg-[#1c1c1e] hover:bg-[#2c2c2e] text-white border-white/10'
-                    : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-300'
-                }`}
-                title="Select country & currency"
-              >
-                <span>{currencyDetails[selectedCurrency].flag}</span>
-                <span className="font-mono">{currencyDetails[selectedCurrency].label}</span>
-                <span className="material-symbols-outlined text-[14px]">expand_more</span>
-              </button>
-
-              {isCurrencyDropdownOpen && (
-                <div className={`absolute right-0 top-10 w-48 border rounded-2xl shadow-2xl p-1.5 z-50 animate-in fade-in zoom-in-95 duration-150 ${
-                  theme === 'dark' ? 'bg-[#1c1c1e] border-white/15' : 'bg-white border-slate-200 shadow-xl'
-                }`}>
-                  {(Object.keys(currencyDetails) as CurrencyCode[]).map((code) => (
-                    <button
-                      key={code}
-                      onClick={() => {
-                        setSelectedCurrency(code);
-                        setIsCurrencyDropdownOpen(false);
-                        showToast('Currency Updated', `Prices switched to ${currencyDetails[code].label}`, 'info');
-                      }}
-                      className={`w-full text-left px-3 py-2 rounded-xl text-xs flex items-center justify-between transition-colors cursor-pointer ${
-                        selectedCurrency === code
-                          ? 'bg-[#e50914] text-white font-bold'
-                          : theme === 'dark'
-                          ? 'text-neutral-300 hover:bg-[#2c2c2e] hover:text-white'
-                          : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <span>{currencyDetails[code].flag}</span>
-                        <span>{currencyDetails[code].label}</span>
-                      </div>
-                      <span className="font-mono">{currencyDetails[code].symbol}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
             {/* Download Apps Pill */}
             <button
               onClick={() => setIsDownloadAppsModalOpen(true)}
-              className={`hidden sm:flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all shadow-xs cursor-pointer border ${
+              className={`h-9 hidden sm:flex items-center gap-1.5 px-3.5 rounded-full text-xs font-bold transition-all shadow-xs cursor-pointer border ${
                 theme === 'dark'
                   ? 'bg-[#242426] hover:bg-[#323234] text-white border-white/15'
                   : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-300'
@@ -722,10 +674,18 @@ export const LandingTourView: React.FC = () => {
               <span>Download Apps</span>
             </button>
 
-            {/* Sign In Pill */}
+            {/* Book Free Demo Pill */}
+            <button
+              onClick={() => setIsBookDemoModalOpen(true)}
+              className="h-9 flex items-center gap-1.5 px-4 sm:px-5 rounded-full bg-[#e50914] hover:bg-[#b80710] text-white text-xs font-bold transition-all shadow-md shadow-red-600/30 active:scale-95 cursor-pointer whitespace-nowrap"
+            >
+              <span>Book Free Demo</span>
+            </button>
+
+            {/* Sign In Pill (Shifted to right side) */}
             <button
               onClick={() => setActiveScreen('login')}
-              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all shadow-xs cursor-pointer border ${
+              className={`h-9 flex items-center gap-1.5 px-3.5 rounded-full text-xs font-bold transition-all shadow-xs cursor-pointer border ${
                 theme === 'dark'
                   ? 'bg-white/10 hover:bg-white/20 text-white border-white/20'
                   : 'bg-white hover:bg-slate-50 text-slate-800 border-slate-300'
@@ -733,14 +693,6 @@ export const LandingTourView: React.FC = () => {
             >
               <span className="material-symbols-outlined text-[15px] text-[#e50914]">login</span>
               <span>Sign In</span>
-            </button>
-
-            {/* Book Free Demo Pill */}
-            <button
-              onClick={() => setIsBookDemoModalOpen(true)}
-              className="flex items-center gap-1.5 px-4 sm:px-5 py-2 rounded-full bg-[#e50914] hover:bg-[#b80710] text-white text-xs font-bold transition-all shadow-md shadow-red-600/30 active:scale-95 cursor-pointer whitespace-nowrap"
-            >
-              <span>Book Free Demo</span>
             </button>
           </div>
         </div>
@@ -773,6 +725,14 @@ export const LandingTourView: React.FC = () => {
         </div>
       </header>
 
+      {/* SuperAdmin Managed Announcement Banner */}
+      {landingCms?.showAnnouncement && landingCms?.announcementBanner && (
+        <div className="bg-gradient-to-r from-[#e50914] via-amber-600 to-[#e50914] text-white py-2.5 px-4 text-center text-xs font-semibold shadow-md flex items-center justify-center gap-2 relative z-20">
+          <span className="material-symbols-outlined text-[16px] animate-pulse">campaign</span>
+          <span>{landingCms.announcementBanner}</span>
+        </div>
+      )}
+
       {/* 2. Hero Section: Inspired by gymify.co.in/features */}
       <section id="hero" className="relative pt-12 pb-12 sm:pt-16 sm:pb-16 px-4 sm:px-8 overflow-hidden bg-gradient-to-b from-[#0d0d0d] via-surface to-surface">
         {/* Animated Background Ambience */}
@@ -783,21 +743,20 @@ export const LandingTourView: React.FC = () => {
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#e50914]/10 border border-[#e50914]/30 text-[#ff7b72] text-xs font-bold font-mono uppercase tracking-wider shadow-sm">
             <span className="w-2 h-2 rounded-full bg-[#ff7b72] animate-ping"></span>
             <span className="material-symbols-outlined text-[16px]">verified</span>
-            <span>Comprehensive Gym Management Operating System</span>
+            <span>{landingCms?.badgeText || 'Comprehensive Gym Management Operating System'}</span>
           </div>
 
           {/* Headline matching gymify.co.in/features */}
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-headline font-extrabold text-white tracking-tight leading-[1.12]">
-            Everything you need to run and scale your gym operations in{' '}
+            {landingCms?.heroHeadline || 'Everything you need to run and scale your gym operations in'}{' '}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#ff7b72] via-[#e50914] to-amber-400">
-              one powerful system
+              {landingCms?.heroHighlight || 'one powerful system'}
             </span>
           </h1>
 
           {/* Subtitle matching gymify.co.in/features */}
           <p className="text-base sm:text-lg text-neutral-300 max-w-3xl mx-auto font-medium leading-relaxed">
-            Connect owners, front desk teams, trainers, and members within a single seamless ecosystem.
-            Say goodbye to fragmented spreadsheets, disconnected biometric software, and expensive monthly SaaS fees.
+            {landingCms?.heroSubtitle || 'Connect owners, front desk teams, trainers, and members within a single seamless ecosystem. Say goodbye to fragmented spreadsheets, disconnected biometric software, and expensive monthly SaaS fees.'}
           </p>
 
           {/* 5 Floating Telemetry Badges with Smooth Animation */}
@@ -1557,10 +1516,10 @@ export const LandingTourView: React.FC = () => {
               <span className="w-3 h-3 rounded-full bg-[#27c93f]"></span>
             </div>
 
-            {/* Address bar pill: gymflow-pro • runs locally in your browser */}
+            {/* Address bar pill: gymify-pro • runs locally in your browser */}
             <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-surface-container-low border border-outline-variant/30 text-xs font-mono text-on-surface-variant max-w-sm w-full justify-center shadow-inner">
               <span className="material-symbols-outlined text-[14px]">lock</span>
-              <span className="text-on-surface font-medium">gymflow-pro</span>
+              <span className="text-on-surface font-medium">gymify-pro</span>
               <span className="text-on-surface-variant/40">•</span>
               <span className="text-on-surface-variant">runs locally in your browser</span>
             </div>
@@ -1682,9 +1641,9 @@ export const LandingTourView: React.FC = () => {
                   <div className="bg-surface-container-low p-3.5 rounded-xl border border-outline-variant/30">
                     <div className="flex items-center justify-between text-on-surface-variant">
                       <span>Monthly Revenue</span>
-                      <span className="material-symbols-outlined text-emerald-500 text-[17px]">attach_money</span>
+                      <span className="material-symbols-outlined text-emerald-500 text-[17px]">currency_rupee</span>
                     </div>
-                    <div className="text-2xl font-bold font-mono text-on-surface mt-2">$456.00</div>
+                    <div className="text-2xl font-bold font-mono text-on-surface mt-2">₹456.00</div>
                     <div className="text-[10px] text-red-500 font-mono mt-0.5">▼ 19% vs last month</div>
                   </div>
 
@@ -1693,7 +1652,7 @@ export const LandingTourView: React.FC = () => {
                       <span>Monthly Expenses</span>
                       <span className="material-symbols-outlined text-amber-500 text-[17px]">receipt_long</span>
                     </div>
-                    <div className="text-2xl font-bold font-mono text-on-surface mt-2">$6,494.00</div>
+                    <div className="text-2xl font-bold font-mono text-on-surface mt-2">₹6,494.00</div>
                     <div className="text-[10px] text-on-surface-variant mt-0.5">Jul 2026</div>
                   </div>
 
@@ -1702,7 +1661,7 @@ export const LandingTourView: React.FC = () => {
                       <span>Monthly Profit</span>
                       <span className="material-symbols-outlined text-red-500 text-[17px]">trending_down</span>
                     </div>
-                    <div className="text-2xl font-bold font-mono text-red-500 mt-2">-$6,038.00</div>
+                    <div className="text-2xl font-bold font-mono text-red-500 mt-2">-₹6,038.00</div>
                     <div className="text-[10px] text-on-surface-variant mt-0.5">revenue - expenses</div>
                   </div>
                 </div>
@@ -1900,21 +1859,21 @@ export const LandingTourView: React.FC = () => {
                   <div className="bg-surface-container-low p-3.5 rounded-xl border border-outline-variant/20 flex items-center justify-between">
                     <div>
                       <div className="text-[11px] text-on-surface-variant">Total received (all time)</div>
-                      <div className="text-xl font-bold font-mono text-on-surface mt-1">$9,742.00</div>
+                      <div className="text-xl font-bold font-mono text-on-surface mt-1">₹9,742.00</div>
                     </div>
-                    <span className="material-symbols-outlined text-emerald-500 text-[20px]">attach_money</span>
+                    <span className="material-symbols-outlined text-emerald-500 text-[20px]">currency_rupee</span>
                   </div>
                   <div className="bg-surface-container-low p-3.5 rounded-xl border border-outline-variant/20 flex items-center justify-between">
                     <div>
                       <div className="text-[11px] text-on-surface-variant">This month</div>
-                      <div className="text-xl font-bold font-mono text-on-surface mt-1">$456.00</div>
+                      <div className="text-xl font-bold font-mono text-on-surface mt-1">₹456.00</div>
                     </div>
                     <span className="material-symbols-outlined text-primary text-[20px]">trending_up</span>
                   </div>
                   <div className="bg-surface-container-low p-3.5 rounded-xl border border-outline-variant/20 flex items-center justify-between">
                     <div>
                       <div className="text-[11px] text-on-surface-variant">Outstanding (5)</div>
-                      <div className="text-xl font-bold font-mono text-amber-500 mt-1">$277.00</div>
+                      <div className="text-xl font-bold font-mono text-amber-500 mt-1">₹277.00</div>
                     </div>
                     <span className="material-symbols-outlined text-amber-500 text-[20px]">schedule</span>
                   </div>
@@ -1934,11 +1893,11 @@ export const LandingTourView: React.FC = () => {
                     </thead>
                     <tbody className="divide-y divide-outline-variant/10 text-on-surface">
                       {[
-                        { ref: 'PAY-0053', date: '04/27/2027', name: 'Caleb Ahmed', amount: '$29.00', method: 'Bank Transfer' },
-                        { ref: 'PAY-0068', date: '02/21/2027', name: 'Rohan Flores', amount: '$29.00', method: 'Bank Transfer' },
-                        { ref: 'PAY-0064', date: '02/02/2027', name: 'Owen Vargas', amount: '$99.00', method: 'Bank Transfer' },
-                        { ref: 'PAY-0059', date: '01/15/2027', name: 'Freya Santos', amount: '$99.00', method: 'Cash' },
-                        { ref: 'PAY-0030', date: '12/05/2026', name: 'Chloe Larsen', amount: '$29.00', method: 'Card' },
+                        { ref: 'PAY-0053', date: '04/27/2027', name: 'Caleb Ahmed', amount: '₹29.00', method: 'Bank Transfer' },
+                        { ref: 'PAY-0068', date: '02/21/2027', name: 'Rohan Flores', amount: '₹29.00', method: 'Bank Transfer' },
+                        { ref: 'PAY-0064', date: '02/02/2027', name: 'Owen Vargas', amount: '₹99.00', method: 'Bank Transfer' },
+                        { ref: 'PAY-0059', date: '01/15/2027', name: 'Freya Santos', amount: '₹99.00', method: 'Cash' },
+                        { ref: 'PAY-0030', date: '12/05/2026', name: 'Chloe Larsen', amount: '₹29.00', method: 'Card' },
                       ].map((p) => (
                         <tr key={p.ref} className="hover:bg-surface-container/50">
                           <td className="py-2.5 px-3 font-mono font-medium text-on-surface-variant text-[11px]">{p.ref}</td>
@@ -2072,15 +2031,15 @@ export const LandingTourView: React.FC = () => {
                 <div className="grid grid-cols-3 gap-3">
                   <div className="bg-surface-container-low p-3.5 rounded-xl border border-outline-variant/20">
                     <div className="text-[11px] text-on-surface-variant">Expenses this month</div>
-                    <div className="text-xl font-bold font-mono text-on-surface mt-1">$6,494.00</div>
+                    <div className="text-xl font-bold font-mono text-on-surface mt-1">₹6,494.00</div>
                   </div>
                   <div className="bg-surface-container-low p-3.5 rounded-xl border border-outline-variant/20">
                     <div className="text-[11px] text-on-surface-variant">Revenue this month</div>
-                    <div className="text-xl font-bold font-mono text-on-surface mt-1">$456.00</div>
+                    <div className="text-xl font-bold font-mono text-on-surface mt-1">₹456.00</div>
                   </div>
                   <div className="bg-surface-container-low p-3.5 rounded-xl border border-outline-variant/20">
                     <div className="text-[11px] text-on-surface-variant">Profit this month</div>
-                    <div className="text-xl font-bold font-mono text-red-500 mt-1">-$6,038.00</div>
+                    <div className="text-xl font-bold font-mono text-red-500 mt-1">-₹6,038.00</div>
                   </div>
                 </div>
 
@@ -2097,11 +2056,11 @@ export const LandingTourView: React.FC = () => {
                     </thead>
                     <tbody className="divide-y divide-outline-variant/10 text-on-surface">
                       {[
-                        { ref: 'EXP-0021', cat: 'Supplies', desc: 'New kettlebells set (16kg & 24kg)', amount: '$564.00', method: 'Mobile Payment' },
-                        { ref: 'EXP-0023', cat: 'Supplies', desc: 'Protein bar restock', amount: '$210.00', method: 'Cash' },
-                        { ref: 'EXP-0022', cat: 'Marketing', desc: 'Instagram promo boost', amount: '$120.00', method: 'Card' },
-                        { ref: 'EXP-0019', cat: 'Salaries', desc: 'Trainer & front-desk payroll', amount: '$3,443.00', method: 'Bank Transfer' },
-                        { ref: 'EXP-0020', cat: 'Utilities', desc: 'Electricity, water & internet', amount: '$307.00', method: 'Card' },
+                        { ref: 'EXP-0021', cat: 'Supplies', desc: 'New kettlebells set (16kg & 24kg)', amount: '₹564.00', method: 'Mobile Payment' },
+                        { ref: 'EXP-0023', cat: 'Supplies', desc: 'Protein bar restock', amount: '₹210.00', method: 'Cash' },
+                        { ref: 'EXP-0022', cat: 'Marketing', desc: 'Instagram promo boost', amount: '₹120.00', method: 'Card' },
+                        { ref: 'EXP-0019', cat: 'Salaries', desc: 'Trainer & front-desk payroll', amount: '₹3,443.00', method: 'Bank Transfer' },
+                        { ref: 'EXP-0020', cat: 'Utilities', desc: 'Electricity, water & internet', amount: '₹307.00', method: 'Card' },
                       ].map((e) => (
                         <tr key={e.ref} className="hover:bg-surface-container/50">
                           <td className="py-2.5 px-3 font-mono text-on-surface-variant text-[11px]">{e.ref}</td>
@@ -2135,15 +2094,15 @@ export const LandingTourView: React.FC = () => {
                 <div className="grid grid-cols-4 gap-3 text-xs">
                   <div className="bg-surface-container-low p-3 rounded-xl border border-outline-variant/20">
                     <div className="text-[10px] text-on-surface-variant">Revenue</div>
-                    <div className="text-lg font-bold font-mono text-on-surface mt-1">$4,378.00</div>
+                    <div className="text-lg font-bold font-mono text-on-surface mt-1">₹4,378.00</div>
                   </div>
                   <div className="bg-surface-container-low p-3 rounded-xl border border-outline-variant/20">
                     <div className="text-[10px] text-on-surface-variant">Expenses</div>
-                    <div className="text-lg font-bold font-mono text-on-surface mt-1">$34,324.00</div>
+                    <div className="text-lg font-bold font-mono text-on-surface mt-1">₹34,324.00</div>
                   </div>
                   <div className="bg-surface-container-low p-3 rounded-xl border border-outline-variant/20">
                     <div className="text-[10px] text-on-surface-variant">Profit</div>
-                    <div className="text-lg font-bold font-mono text-red-500 mt-1">-$29,946.00</div>
+                    <div className="text-lg font-bold font-mono text-red-500 mt-1">-₹29,946.00</div>
                   </div>
                   <div className="bg-surface-container-low p-3 rounded-xl border border-outline-variant/20">
                     <div className="text-[10px] text-on-surface-variant">New Members</div>
@@ -2789,7 +2748,7 @@ export const LandingTourView: React.FC = () => {
               </thead>
               <tbody className="divide-y divide-outline-variant/15 text-on-surface">
                 {[
-                  { feature: 'Pricing Model', gc: 'Pay once, lifetime ownership', saas: '$150 - $300 / month recurring', sheet: 'Free (but manual & slow)' },
+                  { feature: 'Pricing Model', gc: 'Pay once, lifetime ownership', saas: '₹12,000 - ₹25,000 / month recurring', sheet: 'Free (but manual & slow)' },
                   { feature: 'Turnstile & Biometric Gates', gc: 'Hardwired 0.1s instant relay', saas: 'Requires expensive third-party bridges', sheet: 'Not supported' },
                   { feature: 'Offline Reliability', gc: 'Runs 100% locally with zero internet', saas: 'Down when your broadband drops', sheet: 'Prone to sync conflicts' },
                   { feature: 'Indian GST & SAC 999723', gc: 'Built-in auto split & GSTR-1 CSV', saas: 'Western software without GST', sheet: 'Manual tax calculation' },
@@ -2961,339 +2920,116 @@ export const LandingTourView: React.FC = () => {
             </div>
           </div>
 
-          {/* 4 Pricing Cards Grid */}
+          {/* Dynamic Pricing Cards Grid configured via SuperAdmin CMS */}
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 items-stretch">
-            {/* Card 1: Starter */}
-            <div className={`rounded-2xl border p-7 flex flex-col justify-between transition-all group ${
-              theme === 'dark'
-                ? 'bg-[#121214]/90 backdrop-blur-md border-white/10 hover:border-white/25 shadow-xl text-white'
-                : 'bg-white border-slate-200 hover:border-slate-300 shadow-md hover:shadow-xl text-slate-900'
-            }`}>
-              <div className="space-y-6">
-                <div>
-                  <span className="text-[#ff7b72] font-mono text-[11px] font-bold uppercase tracking-widest block mb-2">
-                    FOR SMALL GYMS
-                  </span>
-                  <h3 className="text-3xl font-headline font-bold tracking-tight">Starter</h3>
-                  <p className={`text-xs mt-1 ${theme === 'dark' ? 'text-neutral-400' : 'text-slate-500'}`}>
-                    Ideal for boutique studios &amp; single-room fitness clubs.
-                  </p>
-                </div>
+            {(landingCms?.plans && landingCms.plans.length > 0 ? landingCms.plans : []).map((plan) => {
+              const discountPct = plan.annualDiscountPercent || 20;
+              const calculatedYearlyMonthlyRate = plan.yearlyPrice > 0 ? plan.yearlyPrice : Math.round(plan.monthlyPrice * (1 - discountPct / 100));
+              const price = pricingCycle === 'monthly' ? plan.monthlyPrice : calculatedYearlyMonthlyRate;
+              const savings = (plan.monthlyPrice - calculatedYearlyMonthlyRate) * 12;
+              const effectiveDiscount = Math.round(((plan.monthlyPrice - calculatedYearlyMonthlyRate) / (plan.monthlyPrice || 1)) * 100);
 
-                <div>
-                  <div className="text-[#ff4d4f] font-mono text-4xl sm:text-5xl font-extrabold tracking-tight">
-                    {pricingCycle === 'monthly'
-                      ? PLAN_PRICING.starter[selectedCurrency].formattedMonthly
-                      : PLAN_PRICING.starter[selectedCurrency].formattedYearly}
-                  </div>
-                  <div className={`font-mono text-[11px] font-bold tracking-wider mt-1.5 uppercase ${
-                    theme === 'dark' ? 'text-neutral-400' : 'text-slate-500'
-                  }`}>
-                    PER MONTH {pricingCycle === 'yearly' ? `• BILLED ANNUALLY (${PLAN_PRICING.starter[selectedCurrency].annualBillingTotal})` : ''}
-                  </div>
-                  {pricingCycle === 'yearly' && (
-                    <div className="text-emerald-500 font-mono text-[11px] font-bold mt-0.5">
-                      ✓ {PLAN_PRICING.starter[selectedCurrency].annualSavings}
-                    </div>
-                  )}
-                </div>
-
-                <div className={`space-y-3.5 text-xs pt-4 border-t ${
-                  theme === 'dark' ? 'border-white/10 text-neutral-300' : 'border-slate-200 text-slate-700'
-                }`}>
-                  <div className="flex items-start gap-2.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#ff4d4f] shrink-0 mt-1.5 shadow-[0_0_6px_#ff4d4f]"></span>
-                    <span><strong>Up to 100 active members</strong></span>
-                  </div>
-                  <div className="flex items-start gap-2.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#ff4d4f] shrink-0 mt-1.5 shadow-[0_0_6px_#ff4d4f]"></span>
-                    <span>1 Gym branch location included</span>
-                  </div>
-                  <div className="flex items-start gap-2.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#ff4d4f] shrink-0 mt-1.5 shadow-[0_0_6px_#ff4d4f]"></span>
-                    <span>Owner Dashboard, Trainer App &amp; Member App</span>
-                  </div>
-                  <div className="flex items-start gap-2.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#ff4d4f] shrink-0 mt-1.5 shadow-[0_0_6px_#ff4d4f]"></span>
-                    <span>Plans, payments &amp; GST tax invoices</span>
-                  </div>
-                  <div className="flex items-start gap-2.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#ff4d4f] shrink-0 mt-1.5 shadow-[0_0_6px_#ff4d4f]"></span>
-                    <span>Biometric &amp; manual attendance check-in</span>
-                  </div>
-                  <div className="flex items-start gap-2.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#ff4d4f] shrink-0 mt-1.5 shadow-[0_0_6px_#ff4d4f]"></span>
-                    <span>100% offline POS mode with cloud sync</span>
-                  </div>
-                  <div className="flex items-start gap-2.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#ff4d4f] shrink-0 mt-1.5 shadow-[0_0_6px_#ff4d4f]"></span>
-                    <span className={theme === 'dark' ? 'text-neutral-400' : 'text-slate-500'}>Applicable GST extra</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="pt-8">
-                <button
-                  onClick={() => {
-                    setSelectedEnrollPlan('Starter');
-                    setIsEnrollModalOpen(true);
-                  }}
-                  className={`w-full py-3.5 rounded-full font-bold text-xs uppercase tracking-wider text-center transition-all cursor-pointer shadow-xs active:scale-98 ${
-                    theme === 'dark'
-                      ? 'bg-[#242426] hover:bg-[#323236] text-white border border-white/10 hover:border-white/25'
-                      : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 hover:border-slate-400'
+              return (
+                <div
+                  key={plan.id}
+                  className={`rounded-2xl border p-7 flex flex-col justify-between transition-all relative group ${
+                    plan.isPopular
+                      ? theme === 'dark'
+                        ? 'bg-gradient-to-b from-[#1b1214] via-[#141215] to-[#100f12] border-2 border-[#e50914] text-white shadow-2xl shadow-red-950/60 transform xl:-translate-y-2'
+                        : 'bg-gradient-to-b from-red-50/60 via-white to-white border-2 border-[#e50914] text-slate-900 shadow-2xl shadow-red-500/10 transform xl:-translate-y-2'
+                      : theme === 'dark'
+                        ? 'bg-[#121214]/90 backdrop-blur-md border-white/10 hover:border-white/25 shadow-xl text-white'
+                        : 'bg-white border-slate-200 hover:border-slate-300 shadow-md hover:shadow-xl text-slate-900'
                   }`}
                 >
-                  ENROLL NOW
-                </button>
-              </div>
-            </div>
-
-            {/* Card 2: Growth (RECOMMENDED / HIGHLIGHTED) */}
-            <div className={`rounded-2xl border-2 border-[#e50914] p-7 flex flex-col justify-between shadow-2xl relative group transform xl:-translate-y-2 transition-all ${
-              theme === 'dark'
-                ? 'bg-gradient-to-b from-[#1b1214] via-[#141215] to-[#100f12] text-white shadow-red-950/60'
-                : 'bg-gradient-to-b from-red-50/60 via-white to-white text-slate-900 shadow-red-500/10'
-            }`}>
-              {/* Highlight ribbon */}
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#e50914] text-white text-[10px] font-mono font-bold uppercase tracking-widest px-3.5 py-1 rounded-full shadow-md">
-                ★ MOST POPULAR
-              </div>
-
-              <div className="space-y-6">
-                <div>
-                  <span className="text-[#ff4d4f] font-mono text-[11px] font-bold uppercase tracking-widest block mb-2">
-                    RECOMMENDED FOR MOST GYMS
-                  </span>
-                  <h3 className="text-3xl font-headline font-bold tracking-tight">Growth</h3>
-                  <p className={`text-xs mt-1 ${theme === 'dark' ? 'text-neutral-400' : 'text-slate-500'}`}>
-                    High-performing clubs scaling member retention &amp; revenue.
-                  </p>
-                </div>
-
-                <div>
-                  <div className="text-[#ff4d4f] font-mono text-4xl sm:text-5xl font-extrabold tracking-tight">
-                    {pricingCycle === 'monthly'
-                      ? PLAN_PRICING.growth[selectedCurrency].formattedMonthly
-                      : PLAN_PRICING.growth[selectedCurrency].formattedYearly}
-                  </div>
-                  <div className={`font-mono text-[11px] font-bold tracking-wider mt-1.5 uppercase ${
-                    theme === 'dark' ? 'text-neutral-400' : 'text-slate-500'
-                  }`}>
-                    PER MONTH {pricingCycle === 'yearly' ? `• BILLED ANNUALLY (${PLAN_PRICING.growth[selectedCurrency].annualBillingTotal})` : ''}
-                  </div>
-                  {pricingCycle === 'yearly' && (
-                    <div className="text-emerald-500 font-mono text-[11px] font-bold mt-0.5">
-                      ✓ {PLAN_PRICING.growth[selectedCurrency].annualSavings}
+                  {plan.isPopular && (
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#e50914] text-white text-[10px] font-mono font-bold uppercase tracking-widest px-3.5 py-1 rounded-full shadow-md">
+                      ★ MOST POPULAR
                     </div>
                   )}
-                </div>
 
-                <div className="space-y-3.5 text-xs pt-4 border-t border-red-500/20">
-                  <div className="flex items-start gap-2.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#ff4d4f] shrink-0 mt-1.5 shadow-[0_0_6px_#ff4d4f]"></span>
-                    <span><strong>Up to 200 active members</strong></span>
-                  </div>
-                  <div className="flex items-start gap-2.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#ff4d4f] shrink-0 mt-1.5 shadow-[0_0_6px_#ff4d4f]"></span>
-                    <span>Everything in Starter included</span>
-                  </div>
-                  <div className="flex items-start gap-2.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#ff4d4f] shrink-0 mt-1.5 shadow-[0_0_6px_#ff4d4f]"></span>
-                    <span>Expense tracking &amp; Net Profit reports</span>
-                  </div>
-                  <div className="flex items-start gap-2.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#ff4d4f] shrink-0 mt-1.5 shadow-[0_0_6px_#ff4d4f]"></span>
-                    <span>Automated WhatsApp fee dues &amp; receipt triggers</span>
-                  </div>
-                  <div className="flex items-start gap-2.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#ff4d4f] shrink-0 mt-1.5 shadow-[0_0_6px_#ff4d4f]"></span>
-                    <span>Trainer roster &amp; commission management</span>
-                  </div>
-                  <div className="flex items-start gap-2.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#ff4d4f] shrink-0 mt-1.5 shadow-[0_0_6px_#ff4d4f]"></span>
-                    <span>SAC 999723 GST input tax credit receipts</span>
-                  </div>
-                  <div className="flex items-start gap-2.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#ff4d4f] shrink-0 mt-1.5 shadow-[0_0_6px_#ff4d4f]"></span>
-                    <span className={theme === 'dark' ? 'text-neutral-400' : 'text-slate-500'}>Applicable GST extra</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="pt-8">
-                <button
-                  onClick={() => {
-                    setSelectedEnrollPlan('Growth');
-                    setIsEnrollModalOpen(true);
-                  }}
-                  className="w-full py-3.5 rounded-full bg-gradient-to-r from-[#e50914] to-[#f43f5e] hover:from-[#d00812] hover:to-[#e11d48] text-white font-bold text-xs uppercase tracking-wider text-center transition-all cursor-pointer shadow-lg shadow-red-600/50 hover:shadow-red-600/70 active:scale-98"
-                >
-                  ENROLL NOW
-                </button>
-              </div>
-            </div>
-
-            {/* Card 3: Pro */}
-            <div className={`rounded-2xl border p-7 flex flex-col justify-between transition-all group ${
-              theme === 'dark'
-                ? 'bg-[#121214]/90 backdrop-blur-md border-white/10 hover:border-white/25 shadow-xl text-white'
-                : 'bg-white border-slate-200 hover:border-slate-300 shadow-md hover:shadow-xl text-slate-900'
-            }`}>
-              <div className="space-y-6">
-                <div>
-                  <span className="text-[#ff7b72] font-mono text-[11px] font-bold uppercase tracking-widest block mb-2">
-                    FOR ESTABLISHED GYMS
-                  </span>
-                  <h3 className="text-3xl font-headline font-bold tracking-tight">Pro</h3>
-                  <p className={`text-xs mt-1 ${theme === 'dark' ? 'text-neutral-400' : 'text-slate-500'}`}>
-                    Comprehensive gym management with hardware &amp; class ticketing.
-                  </p>
-                </div>
-
-                <div>
-                  <div className="text-[#ff4d4f] font-mono text-4xl sm:text-5xl font-extrabold tracking-tight">
-                    {pricingCycle === 'monthly'
-                      ? PLAN_PRICING.pro[selectedCurrency].formattedMonthly
-                      : PLAN_PRICING.pro[selectedCurrency].formattedYearly}
-                  </div>
-                  <div className={`font-mono text-[11px] font-bold tracking-wider mt-1.5 uppercase ${
-                    theme === 'dark' ? 'text-neutral-400' : 'text-slate-500'
-                  }`}>
-                    PER MONTH {pricingCycle === 'yearly' ? `• BILLED ANNUALLY (${PLAN_PRICING.pro[selectedCurrency].annualBillingTotal})` : ''}
-                  </div>
-                  {pricingCycle === 'yearly' && (
-                    <div className="text-emerald-500 font-mono text-[11px] font-bold mt-0.5">
-                      ✓ {PLAN_PRICING.pro[selectedCurrency].annualSavings}
+                  <div className="space-y-6">
+                    <div>
+                      {plan.badge && (
+                        <span className="text-[#ff7b72] font-mono text-[11px] font-bold uppercase tracking-widest block mb-2">
+                          {plan.badge}
+                        </span>
+                      )}
+                      <h3 className="text-3xl font-headline font-bold tracking-tight">{plan.name}</h3>
+                      <p className={`text-xs mt-1 ${theme === 'dark' ? 'text-neutral-400' : 'text-slate-500'}`}>
+                        {plan.description}
+                      </p>
                     </div>
-                  )}
-                </div>
 
-                <div className={`space-y-3.5 text-xs pt-4 border-t ${
-                  theme === 'dark' ? 'border-white/10 text-neutral-300' : 'border-slate-200 text-slate-700'
-                }`}>
-                  <div className="flex items-start gap-2.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#ff4d4f] shrink-0 mt-1.5 shadow-[0_0_6px_#ff4d4f]"></span>
-                    <span><strong>Up to 400 active members</strong></span>
-                  </div>
-                  <div className="flex items-start gap-2.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#ff4d4f] shrink-0 mt-1.5 shadow-[0_0_6px_#ff4d4f]"></span>
-                    <span>Everything in Growth included</span>
-                  </div>
-                  <div className="flex items-start gap-2.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#ff4d4f] shrink-0 mt-1.5 shadow-[0_0_6px_#ff4d4f]"></span>
-                    <span>Complaints &amp; maintenance ticketing</span>
-                  </div>
-                  <div className="flex items-start gap-2.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#ff4d4f] shrink-0 mt-1.5 shadow-[0_0_6px_#ff4d4f]"></span>
-                    <span>Custom workout plans &amp; diet macro splits</span>
-                  </div>
-                  <div className="flex items-start gap-2.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#ff4d4f] shrink-0 mt-1.5 shadow-[0_0_6px_#ff4d4f]"></span>
-                    <span>Turnstile &amp; face-recognition terminal sync</span>
-                  </div>
-                  <div className="flex items-start gap-2.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#ff4d4f] shrink-0 mt-1.5 shadow-[0_0_6px_#ff4d4f]"></span>
-                    <span>Priority chat support (&lt; 15 min response)</span>
-                  </div>
-                  <div className="flex items-start gap-2.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#ff4d4f] shrink-0 mt-1.5 shadow-[0_0_6px_#ff4d4f]"></span>
-                    <span className={theme === 'dark' ? 'text-neutral-400' : 'text-slate-500'}>Applicable GST extra</span>
-                  </div>
-                </div>
-              </div>
+                    <div>
+                      {/* Price Section with 20% Annual Discount Engine */}
+                      {pricingCycle === 'yearly' && (
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-xs line-through text-on-surface-variant font-mono">
+                            ₹{plan.monthlyPrice.toLocaleString('en-IN')}/mo
+                          </span>
+                          <span className="text-[10px] font-mono font-extrabold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                            {effectiveDiscount}% OFF
+                          </span>
+                        </div>
+                      )}
 
-              <div className="pt-8">
-                <button
-                  onClick={() => {
-                    setSelectedEnrollPlan('Pro');
-                    setIsEnrollModalOpen(true);
-                  }}
-                  className={`w-full py-3.5 rounded-full font-bold text-xs uppercase tracking-wider text-center transition-all cursor-pointer shadow-xs active:scale-98 ${
-                    theme === 'dark'
-                      ? 'bg-[#242426] hover:bg-[#323236] text-white border border-white/10 hover:border-white/25'
-                      : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 hover:border-slate-400'
-                  }`}
-                >
-                  ENROLL NOW
-                </button>
-              </div>
-            </div>
+                      <div className="text-[#ff4d4f] font-mono text-4xl sm:text-5xl font-extrabold tracking-tight">
+                        ₹{price.toLocaleString('en-IN')}
+                      </div>
 
-            {/* Card 4: Enterprise */}
-            <div className={`rounded-2xl border p-7 flex flex-col justify-between transition-all group ${
-              theme === 'dark'
-                ? 'bg-[#121214]/90 backdrop-blur-md border-white/10 hover:border-white/25 shadow-xl text-white'
-                : 'bg-white border-slate-200 hover:border-slate-300 shadow-md hover:shadow-xl text-slate-900'
-            }`}>
-              <div className="space-y-6">
-                <div>
-                  <span className="text-[#ff7b72] font-mono text-[11px] font-bold uppercase tracking-widest block mb-2">
-                    FOR CHAINS &amp; FRANCHISES
-                  </span>
-                  <h3 className="text-3xl font-headline font-bold tracking-tight">Enterprise</h3>
-                  <p className={`text-xs mt-1 ${theme === 'dark' ? 'text-neutral-400' : 'text-slate-500'}`}>
-                    For multi-branch gym chains, luxury fitness clubs &amp; franchises.
-                  </p>
-                </div>
+                      <div className={`font-mono text-[11px] font-bold tracking-wider mt-1.5 uppercase ${
+                        theme === 'dark' ? 'text-neutral-400' : 'text-slate-500'
+                      }`}>
+                        PER MONTH {pricingCycle === 'yearly' ? `• BILLED ANNUALLY (₹${(price * 12).toLocaleString('en-IN')})` : '• BILLED MONTHLY'}
+                      </div>
 
-                <div>
-                  <div className="text-[#ff4d4f] font-mono text-4xl sm:text-5xl font-extrabold tracking-tight">
-                    Custom
+                      {pricingCycle === 'yearly' && savings > 0 ? (
+                        <div className="text-emerald-500 font-mono text-[11px] font-bold mt-0.5 flex items-center gap-1">
+                          <span className="material-symbols-outlined text-[14px]">savings</span>
+                          <span>Save ₹{savings.toLocaleString('en-IN')}/year ({effectiveDiscount}% Annual Savings)</span>
+                        </div>
+                      ) : pricingCycle === 'monthly' ? (
+                        <div className="text-amber-500/90 font-mono text-[10px] font-medium mt-0.5">
+                          💡 Switch to Annual Billing to save 20%
+                        </div>
+                      ) : null}
+                    </div>
+
+                    <div className={`space-y-3.5 text-xs pt-4 border-t ${
+                      plan.isPopular
+                        ? 'border-red-500/20'
+                        : theme === 'dark' ? 'border-white/10 text-neutral-300' : 'border-slate-200 text-slate-700'
+                    }`}>
+                      {plan.features.map((feat, fIdx) => (
+                        <div key={fIdx} className="flex items-start gap-2.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#ff4d4f] shrink-0 mt-1.5 shadow-[0_0_6px_#ff4d4f]"></span>
+                          <span>{feat}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  <div className={`font-mono text-[11px] font-bold tracking-wider mt-1.5 uppercase ${
-                    theme === 'dark' ? 'text-neutral-400' : 'text-slate-500'
-                  }`}>
-                    CUSTOM VOLUME PRICING
-                  </div>
-                  <div className="text-primary font-mono text-[11px] font-bold mt-0.5">
-                    Tailored SLA &amp; dedicated engineer
+
+                  <div className="pt-8">
+                    <button
+                      onClick={() => {
+                        setSelectedEnrollPlan(plan.name as any);
+                        setIsEnrollModalOpen(true);
+                      }}
+                      className={`w-full py-3.5 rounded-full font-bold text-xs uppercase tracking-wider text-center transition-all cursor-pointer shadow-xs active:scale-98 ${
+                        plan.isPopular
+                          ? 'bg-[#e50914] hover:bg-[#b80710] text-white shadow-lg shadow-red-600/30'
+                          : theme === 'dark'
+                            ? 'bg-[#242426] hover:bg-[#323236] text-white border border-white/10 hover:border-white/25'
+                            : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 hover:border-slate-400'
+                      }`}
+                    >
+                      ENROLL NOW
+                    </button>
                   </div>
                 </div>
-
-                <div className={`space-y-3.5 text-xs pt-4 border-t ${
-                  theme === 'dark' ? 'border-white/10 text-neutral-300' : 'border-slate-200 text-slate-700'
-                }`}>
-                  <div className="flex items-start gap-2.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#ff4d4f] shrink-0 mt-1.5 shadow-[0_0_6px_#ff4d4f]"></span>
-                    <span><strong>Custom active members (400+ to 50,000+)</strong></span>
-                  </div>
-                  <div className="flex items-start gap-2.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#ff4d4f] shrink-0 mt-1.5 shadow-[0_0_6px_#ff4d4f]"></span>
-                    <span>Multi-branch centralized command dashboard</span>
-                  </div>
-                  <div className="flex items-start gap-2.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#ff4d4f] shrink-0 mt-1.5 shadow-[0_0_6px_#ff4d4f]"></span>
-                    <span>White-label branding &amp; custom domain</span>
-                  </div>
-                  <div className="flex items-start gap-2.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#ff4d4f] shrink-0 mt-1.5 shadow-[0_0_6px_#ff4d4f]"></span>
-                    <span>Cross-gym biometric roaming check-ins</span>
-                  </div>
-                  <div className="flex items-start gap-2.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#ff4d4f] shrink-0 mt-1.5 shadow-[0_0_6px_#ff4d4f]"></span>
-                    <span>Dedicated SLA, phone support &amp; account manager</span>
-                  </div>
-                  <div className="flex items-start gap-2.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#ff4d4f] shrink-0 mt-1.5 shadow-[0_0_6px_#ff4d4f]"></span>
-                    <span>Free white-glove data migration in &lt; 24 hours</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="pt-8">
-                <button
-                  onClick={() => setIsBookDemoModalOpen(true)}
-                  className={`w-full py-3.5 rounded-full font-bold text-xs uppercase tracking-wider text-center transition-all cursor-pointer shadow-xs active:scale-98 ${
-                    theme === 'dark'
-                      ? 'bg-[#242426] hover:bg-[#323236] text-white border border-white/10 hover:border-white/25'
-                      : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 hover:border-slate-400'
-                  }`}
-                >
-                  CONTACT SALES
-                </button>
-              </div>
-            </div>
+              );
+            })}
           </div>
 
           {/* Interactive ROI & Member Plan Calculator */}
@@ -3440,7 +3176,7 @@ export const LandingTourView: React.FC = () => {
                 <div className="space-y-1">
                   <h4 className="font-headline font-bold text-sm">Extra Member Pack</h4>
                   <div className="text-[#ff4d4f] font-mono font-bold text-lg">
-                    {selectedCurrency === 'INR' ? '₹500' : '$7'} / mo
+                    ₹500 / mo
                   </div>
                   <div className="text-[11px] text-neutral-400 font-mono">Min 50 members block</div>
                 </div>
@@ -3459,7 +3195,7 @@ export const LandingTourView: React.FC = () => {
                 <div className="space-y-1">
                   <h4 className="font-headline font-bold text-sm">WhatsApp Cloud API</h4>
                   <div className="text-emerald-500 font-mono font-bold text-lg">
-                    {selectedCurrency === 'INR' ? '₹0.35' : '$0.005'} / msg
+                    ₹0.35 / msg
                   </div>
                   <div className="text-[11px] text-neutral-400 font-mono">Pay-as-you-use credits</div>
                 </div>
@@ -3478,7 +3214,7 @@ export const LandingTourView: React.FC = () => {
                 <div className="space-y-1">
                   <h4 className="font-headline font-bold text-sm">Turnstile Hardware Sync</h4>
                   <div className="text-blue-500 font-mono font-bold text-lg">
-                    {selectedCurrency === 'INR' ? '₹4,999' : '$69'} one-time
+                    ₹4,999 one-time
                   </div>
                   <div className="text-[11px] text-neutral-400 font-mono">Zero recurring fees</div>
                 </div>
@@ -3502,7 +3238,7 @@ export const LandingTourView: React.FC = () => {
                   <div className="text-[11px] text-neutral-400 font-mono">Completed in &lt; 24h</div>
                 </div>
                 <p className={`text-xs leading-relaxed ${theme === 'dark' ? 'text-neutral-400' : 'text-slate-600'}`}>
-                  Switching from Excel, GymFlow, or legacy software? Our engineering team migrates your member data with zero downtime.
+                  Switching from Excel, Gymify, or legacy software? Our engineering team migrates your member data with zero downtime.
                 </p>
               </div>
             </div>
@@ -3663,7 +3399,7 @@ export const LandingTourView: React.FC = () => {
               {[
                 {
                   q: 'Are there any per-trainer fees or hidden transaction charges?',
-                  a: 'Zero. Unlike other gym software that charges $15–$30 for every trainer account you create, Gymify includes unlimited trainer seats and unlimited staff logins on every plan.',
+                  a: 'Zero. Unlike other gym software that charges ₹1,500–₹2,500 for every trainer account you create, Gymify includes unlimited trainer seats and unlimited staff logins on every plan.',
                 },
                 {
                   q: 'How does the 20% annual discount work?',
@@ -3899,7 +3635,7 @@ export const LandingTourView: React.FC = () => {
                 Gym Growth Playbooks &amp; <span className="text-[#ff7b72]">Masterclasses</span>
               </h2>
               <p className="text-xs sm:text-sm text-on-surface-variant mt-1">
-                Actionable operational strategies from gym founders doing $20k+ to $100k+ in monthly memberships.
+                Actionable operational strategies from gym founders doing ₹20k+ to ₹100k+ in monthly memberships.
               </p>
             </div>
 

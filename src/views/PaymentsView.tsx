@@ -2,12 +2,20 @@ import React, { useState } from 'react';
 import { useGym } from '../context/GymContext';
 import { Invoice, InvoiceStatus } from '../types';
 import { AsyncDataState } from '../components/AsyncDataState';
+import { UPIFeePaymentModal } from '../components/UPIFeePaymentModal';
 
 export const PaymentsView: React.FC = () => {
   const { invoices, openModal, showToast } = useGym();
   const [activeTab, setActiveTab] = useState<'all' | 'invoices' | 'pending' | 'subs'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
+  const [upiPaymentTarget, setUpiPaymentTarget] = useState<{
+    memberName: string;
+    planName: string;
+    memberCode: string;
+    memberPhone: string;
+    amount: number;
+  } | null>(null);
 
   const filteredInvoices = invoices.filter((inv) => {
     const matchesSearch =
@@ -44,6 +52,20 @@ export const PaymentsView: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-3">
+          <button
+            onClick={() => setUpiPaymentTarget({
+              memberName: 'Aarav Sharma',
+              planName: 'Pro Monthly Membership Dues',
+              memberCode: '#MEM-8402',
+              memberPhone: '+91 98201 44521',
+              amount: 4500
+            })}
+            className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-4 py-2 rounded-xl transition-all shadow-lg shadow-emerald-600/20 flex items-center gap-2 cursor-pointer"
+            title="Generate custom UPI QR Code & Share via WhatsApp"
+          >
+            <span className="material-symbols-outlined text-[16px]">qr_code_2</span>
+            <span>Generate UPI QR</span>
+          </button>
           <button
             onClick={() => showToast('CSV Exported', 'Downloaded financial ledger (Oct 2026)', 'success')}
             className="bg-surface-container hover:bg-surface-container-high text-on-surface text-xs font-semibold px-4 py-2 rounded-xl transition-all flex items-center gap-2 border border-outline-variant/30"
@@ -244,6 +266,21 @@ export const PaymentsView: React.FC = () => {
                       <div className="flex items-center justify-end gap-1">
                         <button
                           onClick={() => {
+                            setUpiPaymentTarget({
+                              memberName: inv.memberName,
+                              planName: inv.planOrDescription,
+                              memberCode: inv.memberCode,
+                              memberPhone: '+91 98201 44521',
+                              amount: inv.amount
+                            });
+                          }}
+                          className="p-1.5 hover:bg-emerald-500/15 text-emerald-500 rounded-lg transition-colors"
+                          title="Generate UPI QR & Share via WhatsApp"
+                        >
+                          <span className="material-symbols-outlined text-[16px]">qr_code_2</span>
+                        </button>
+                        <button
+                          onClick={() => {
                             setSelectedInvoice(inv);
                             showToast('Receipt Generated', `Invoice ${inv.invoiceNumber} receipt ready`, 'info');
                           }}
@@ -353,13 +390,32 @@ export const PaymentsView: React.FC = () => {
               </div>
             </div>
 
+            {/* Generate & Share UPI QR Code */}
+            <button
+              type="button"
+              onClick={() => {
+                setUpiPaymentTarget({
+                  memberName: selectedInvoice.memberName,
+                  planName: selectedInvoice.planOrDescription,
+                  memberCode: selectedInvoice.memberCode,
+                  memberPhone: '+91 98201 44521',
+                  amount: selectedInvoice.amount
+                });
+                setSelectedInvoice(null);
+              }}
+              className="w-full mb-3 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs transition-colors flex items-center justify-center gap-1.5 shadow-md shadow-emerald-600/20 cursor-pointer"
+            >
+              <span className="material-symbols-outlined text-[16px]">qr_code_scanner</span>
+              <span>Generate Dynamic UPI QR &amp; Share via WhatsApp</span>
+            </button>
+
             <div className="flex flex-col sm:flex-row gap-2">
               <button
                 onClick={() => {
                   showToast('WhatsApp Sent', `GST Tax invoice PDF sent to ${selectedInvoice.memberName} via WhatsApp.`, 'success');
                   setSelectedInvoice(null);
                 }}
-                className="flex-1 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs transition-colors flex items-center justify-center gap-1.5"
+                className="flex-1 py-2 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 font-semibold text-xs transition-colors flex items-center justify-center gap-1.5"
               >
                 <span className="material-symbols-outlined text-[16px]">chat</span>
                 <span>Send WhatsApp</span>
@@ -385,6 +441,19 @@ export const PaymentsView: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Dynamic UPI Fee Payment Modal with WhatsApp Dispatch */}
+      {upiPaymentTarget && (
+        <UPIFeePaymentModal
+          isOpen={Boolean(upiPaymentTarget)}
+          onClose={() => setUpiPaymentTarget(null)}
+          memberName={upiPaymentTarget.memberName}
+          memberCode={upiPaymentTarget.memberCode}
+          memberPhone={upiPaymentTarget.memberPhone}
+          planName={upiPaymentTarget.planName}
+          defaultAmount={upiPaymentTarget.amount}
+        />
       )}
     </div>
   );

@@ -64,11 +64,11 @@ export const AnalyticsView: React.FC = () => {
           <div>
             <div className="text-xs text-on-surface-variant font-medium">Revenue</div>
             <div className="text-2xl font-bold font-headline text-on-surface font-mono mt-1.5">
-              $4,378.00
+              ₹4,378.00
             </div>
           </div>
           <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
-            <span className="material-symbols-outlined text-[20px]">attach_money</span>
+            <span className="material-symbols-outlined text-[20px]">currency_rupee</span>
           </div>
         </div>
 
@@ -77,7 +77,7 @@ export const AnalyticsView: React.FC = () => {
           <div>
             <div className="text-xs text-on-surface-variant font-medium">Expenses</div>
             <div className="text-2xl font-bold font-headline text-on-surface font-mono mt-1.5">
-              $34,324.00
+              ₹34,324.00
             </div>
           </div>
           <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
@@ -90,7 +90,7 @@ export const AnalyticsView: React.FC = () => {
           <div>
             <div className="text-xs text-on-surface-variant font-medium">Profit</div>
             <div className="text-2xl font-bold font-headline text-red-500 font-mono mt-1.5">
-              -$29,946.00
+              -₹29,946.00
             </div>
           </div>
           <div className="w-10 h-10 rounded-xl bg-red-500/10 text-red-500 flex items-center justify-center shrink-0">

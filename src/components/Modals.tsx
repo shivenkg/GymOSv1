@@ -29,6 +29,11 @@ export const Modals: React.FC = () => {
   const [newMemberEmail, setNewMemberEmail] = useState('');
   const [newMemberPhone, setNewMemberPhone] = useState('');
   const [newMemberPlan, setNewMemberPlan] = useState<MembershipPlan>('Monthly Standard');
+  const [newMemberAadhaar, setNewMemberAadhaar] = useState('');
+  const [newMemberAadhaarDoc, setNewMemberAadhaarDoc] = useState<{ name: string; dataUrl: string } | null>(null);
+  const [newMemberEmergName, setNewMemberEmergName] = useState('');
+  const [newMemberEmergRelation, setNewMemberEmergRelation] = useState('Parent / Guardian');
+  const [newMemberEmergPhone, setNewMemberEmergPhone] = useState('');
 
   // Record Payment state
   const [paymentMember, setPaymentMember] = useState('');
@@ -52,10 +57,50 @@ export const Modals: React.FC = () => {
   const [leadRep, setLeadRep] = useState('Marcus K.');
   const [leadNotes, setLeadNotes] = useState('');
 
-  // Add Staff state
+  // Add Staff & Physical Trainer state
   const [staffName, setStaffName] = useState('');
   const [staffRole, setStaffRole] = useState<StaffMember['role']>('Personal Trainer');
   const [staffPhone, setStaffPhone] = useState('');
+  const [staffShiftHours, setStaffShiftHours] = useState('06:00 - 14:00');
+  const [staffAadhaar, setStaffAadhaar] = useState('');
+  const [staffAadhaarDoc, setStaffAadhaarDoc] = useState<{ name: string; dataUrl: string } | null>(null);
+  const [staffEmergName, setStaffEmergName] = useState('');
+  const [staffEmergRelation, setStaffEmergRelation] = useState('Spouse');
+  const [staffEmergPhone, setStaffEmergPhone] = useState('');
+  const [staffExpYears, setStaffExpYears] = useState<number>(3);
+  const [staffPastWorkplace, setStaffPastWorkplace] = useState('');
+  const [staffSpecializations, setStaffSpecializations] = useState('');
+  const [staffCertifications, setStaffCertifications] = useState('');
+  const [staffCertDoc, setStaffCertDoc] = useState<{ name: string; dataUrl: string } | null>(null);
+  const [staffAcademicDegree, setStaffAcademicDegree] = useState('');
+  const [staffAcademicInstitution, setStaffAcademicInstitution] = useState('');
+  const [staffAcademicYear, setStaffAcademicYear] = useState('');
+  const [staffAcademicDoc, setStaffAcademicDoc] = useState<{ name: string; dataUrl: string } | null>(null);
+  const [staffResumeDoc, setStaffResumeDoc] = useState<{ name: string; dataUrl: string } | null>(null);
+  const [previewDoc, setPreviewDoc] = useState<{ title: string; docName?: string; docUrl?: string } | null>(null);
+
+  // File upload reader helper
+  const handleFileUpload = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    callback: (doc: { name: string; dataUrl: string }) => void
+  ) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 8 * 1024 * 1024) {
+        showToast('File Too Large', 'Please upload a document under 8MB.', 'error');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        callback({
+          name: file.name,
+          dataUrl: reader.result as string
+        });
+        showToast('Document Uploaded', `${file.name} ready for verification.`, 'success');
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   if (!activeModal) return null;
 
@@ -72,98 +117,270 @@ export const Modals: React.FC = () => {
         {/* Modal: Register Member */}
         {activeModal === 'register-member' && (
           <div>
-            <h3 className="text-xl font-headline font-bold text-on-surface mb-1">Register New Member</h3>
-            <p className="text-xs text-on-surface-variant mb-5">Create a member record, generate digital QR code, and assign plan.</p>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="w-2.5 h-2.5 rounded-full bg-primary animate-ping"></span>
+              <h3 className="text-xl font-headline font-bold text-on-surface">Register New Member</h3>
+            </div>
+            <p className="text-xs text-on-surface-variant mb-4">
+              Mandatory KYC registration: Full profile, UIDAI Aadhaar verification &amp; emergency contact required.
+            </p>
 
             <form
               onSubmit={(e) => {
                 e.preventDefault();
-                if (!newMemberName.trim()) return;
+                if (!newMemberName.trim()) {
+                  showToast('Missing Field', 'Please enter member full name.', 'error');
+                  return;
+                }
+                if (!newMemberPhone.trim()) {
+                  showToast('Missing Field', 'Please enter member phone number.', 'error');
+                  return;
+                }
+                if (!newMemberAadhaar.trim() || newMemberAadhaar.replace(/\s/g, '').length < 12) {
+                  showToast('Aadhaar Required', 'Please enter a valid 12-digit Aadhaar number.', 'error');
+                  return;
+                }
+                if (!newMemberAadhaarDoc) {
+                  showToast('Document Missing', 'Please upload a scan or photo of the Aadhaar card.', 'error');
+                  return;
+                }
+                if (!newMemberEmergName.trim() || !newMemberEmergPhone.trim()) {
+                  showToast('Emergency Contact Required', 'Please fill emergency contact name and phone.', 'error');
+                  return;
+                }
+
                 addMember({
                   name: newMemberName,
-                  email: newMemberEmail || `${newMemberName.toLowerCase().replace(/\s+/g, '.')}@example.com`,
-                  phone: newMemberPhone || '+1 (555) 000-0000',
-                  plan: newMemberPlan
+                  email: newMemberEmail || `${newMemberName.toLowerCase().replace(/\s+/g, '.')}@gymify.io`,
+                  phone: newMemberPhone,
+                  plan: newMemberPlan,
+                  aadhaarNumber: newMemberAadhaar,
+                  aadhaarDocUrl: newMemberAadhaarDoc.dataUrl,
+                  aadhaarDocName: newMemberAadhaarDoc.name,
+                  emergencyContactName: newMemberEmergName,
+                  emergencyContactPhone: newMemberEmergPhone,
+                  emergencyContactRelation: newMemberEmergRelation
                 });
+
                 closeModal();
                 setNewMemberName('');
                 setNewMemberEmail('');
                 setNewMemberPhone('');
+                setNewMemberAadhaar('');
+                setNewMemberAadhaarDoc(null);
+                setNewMemberEmergName('');
+                setNewMemberEmergPhone('');
               }}
-              className="space-y-4 text-sm"
+              className="space-y-4 text-xs"
             >
-              <div>
-                <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1.5">
-                  Full Name *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={newMemberName}
-                  onChange={(e) => setNewMemberName(e.target.value)}
-                  placeholder="e.g. Johnathan Davis"
-                  className="w-full bg-surface-container text-on-surface px-4 py-2.5 rounded-xl border border-outline-variant/40 focus:border-primary outline-none focus:ring-1 focus:ring-primary transition-all"
-                />
-              </div>
+              {/* Basic Personal Details */}
+              <div className="bg-surface-container/60 p-3.5 rounded-2xl border border-outline-variant/30 space-y-3">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-primary font-mono block">
+                  1. Personal Identity &amp; Contact
+                </span>
 
-              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1.5">
-                    Email Address
+                  <label className="block font-semibold text-on-surface mb-1">
+                    Full Name <span className="text-error">*</span>
                   </label>
                   <input
-                    type="email"
-                    value={newMemberEmail}
-                    onChange={(e) => setNewMemberEmail(e.target.value)}
-                    placeholder="john@example.com"
-                    className="w-full bg-surface-container text-on-surface px-4 py-2.5 rounded-xl border border-outline-variant/40 focus:border-primary outline-none focus:ring-1 focus:ring-primary transition-all"
+                    type="text"
+                    required
+                    value={newMemberName}
+                    onChange={(e) => setNewMemberName(e.target.value)}
+                    placeholder="e.g. Rahul Deshmukh"
+                    className="w-full bg-surface-container text-on-surface px-3 py-2 rounded-xl border border-outline-variant/40 focus:border-primary outline-none focus:ring-1 focus:ring-primary transition-all text-xs"
                   />
                 </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block font-semibold text-on-surface mb-1">
+                      Phone Number (WhatsApp Active) <span className="text-error">*</span>
+                    </label>
+                    <input
+                      type="tel"
+                      required
+                      value={newMemberPhone}
+                      onChange={(e) => setNewMemberPhone(e.target.value)}
+                      placeholder="+91 98201 44521"
+                      className="w-full bg-surface-container text-on-surface px-3 py-2 rounded-xl border border-outline-variant/40 focus:border-primary outline-none focus:ring-1 focus:ring-primary transition-all text-xs font-mono"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-semibold text-on-surface mb-1">
+                      Email Address <span className="text-error">*</span>
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      value={newMemberEmail}
+                      onChange={(e) => setNewMemberEmail(e.target.value)}
+                      placeholder="rahul@example.in"
+                      className="w-full bg-surface-container text-on-surface px-3 py-2 rounded-xl border border-outline-variant/40 focus:border-primary outline-none focus:ring-1 focus:ring-primary transition-all text-xs"
+                    />
+                  </div>
+                </div>
+
                 <div>
-                  <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1.5">
-                    Phone Number
+                  <label className="block font-semibold text-on-surface mb-1">
+                    Membership Plan <span className="text-error">*</span>
+                  </label>
+                  <select
+                    value={newMemberPlan}
+                    onChange={(e) => setNewMemberPlan(e.target.value as MembershipPlan)}
+                    className="w-full bg-surface-container text-on-surface px-3 py-2 rounded-xl border border-outline-variant/40 focus:border-primary outline-none focus:ring-1 focus:ring-primary transition-all text-xs cursor-pointer font-medium"
+                  >
+                    <option value="VIP Annual">VIP Annual (₹38,500/yr) - Full Access + PT</option>
+                    <option value="Monthly Standard">Monthly Standard (₹3,200/mo) - Gym Floor</option>
+                    <option value="Pro Monthly">Pro Monthly (₹4,500/mo) - Floor + Classes</option>
+                    <option value="Student Pass">Student Pass (₹2,200/mo) - Standard Floor</option>
+                    <option value="Standard Semi-Annual">Standard Semi-Annual (₹16,500/6mo)</option>
+                    <option value="Day Pass">Day Pass (₹500/day)</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Mandatory Aadhaar KYC Section */}
+              <div className="bg-surface-container/60 p-3.5 rounded-2xl border border-outline-variant/30 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-primary font-mono flex items-center gap-1.5">
+                    <span className="material-symbols-outlined text-[15px]">badge</span>
+                    <span>2. Government Aadhaar Card KYC</span>
+                  </span>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-bold">
+                    Mandatory
+                  </span>
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-on-surface mb-1">
+                    Aadhaar Card Number (12 Digits) <span className="text-error">*</span>
                   </label>
                   <input
-                    type="tel"
-                    value={newMemberPhone}
-                    onChange={(e) => setNewMemberPhone(e.target.value)}
-                    placeholder="+1 (555) 000-0000"
-                    className="w-full bg-surface-container text-on-surface px-4 py-2.5 rounded-xl border border-outline-variant/40 focus:border-primary outline-none focus:ring-1 focus:ring-primary transition-all"
+                    type="text"
+                    required
+                    maxLength={14}
+                    value={newMemberAadhaar}
+                    onChange={(e) => {
+                      const digits = e.target.value.replace(/\D/g, '').slice(0, 12);
+                      const formatted = digits.replace(/(\d{4})(?=\d)/g, '$1 ');
+                      setNewMemberAadhaar(formatted);
+                    }}
+                    placeholder="4829 1049 8812"
+                    className="w-full bg-surface-container text-on-surface px-3 py-2 rounded-xl border border-outline-variant/40 focus:border-primary outline-none focus:ring-1 focus:ring-primary transition-all text-xs font-mono tracking-wider font-semibold"
                   />
+                </div>
+
+                {/* Aadhaar Document Upload */}
+                <div>
+                  <label className="block font-semibold text-on-surface mb-1">
+                    Upload Aadhaar Card Document (Front/Back) <span className="text-error">*</span>
+                  </label>
+                  <div className="flex items-center gap-3">
+                    <label className="flex-1 border-2 border-dashed border-outline-variant/50 hover:border-primary/60 bg-surface-container hover:bg-surface-container-high rounded-xl p-3 flex items-center justify-center gap-2 cursor-pointer transition-all">
+                      <span className="material-symbols-outlined text-primary text-[20px]">cloud_upload</span>
+                      <span className="text-xs font-medium text-on-surface">
+                        {newMemberAadhaarDoc ? newMemberAadhaarDoc.name : 'Choose File / Photo (PDF, JPG, PNG)'}
+                      </span>
+                      <input
+                        type="file"
+                        accept="image/*,.pdf"
+                        className="hidden"
+                        onChange={(e) => handleFileUpload(e, setNewMemberAadhaarDoc)}
+                      />
+                    </label>
+                    {newMemberAadhaarDoc && (
+                      <button
+                        type="button"
+                        onClick={() => setNewMemberAadhaarDoc(null)}
+                        className="p-2 text-error hover:bg-error/10 rounded-lg transition-colors cursor-pointer"
+                        title="Remove file"
+                      >
+                        <span className="material-symbols-outlined text-[18px]">delete</span>
+                      </button>
+                    )}
+                  </div>
+                  {newMemberAadhaarDoc && (
+                    <div className="mt-1.5 flex items-center gap-2 text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
+                      <span className="material-symbols-outlined text-[14px]">check_circle</span>
+                      <span>Document attached: {newMemberAadhaarDoc.name}</span>
+                    </div>
+                  )}
                 </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1.5">
-                  Membership Plan *
-                </label>
-                <select
-                  value={newMemberPlan}
-                  onChange={(e) => setNewMemberPlan(e.target.value as MembershipPlan)}
-                  className="w-full bg-surface-container text-on-surface px-4 py-2.5 rounded-xl border border-outline-variant/40 focus:border-primary outline-none focus:ring-1 focus:ring-primary transition-all"
-                >
-                  <option value="VIP Annual">VIP Annual (₹38,500/yr) - Full Access + PT</option>
-                  <option value="Monthly Standard">Monthly Standard (₹3,200/mo) - Gym Floor</option>
-                  <option value="Pro Monthly">Pro Monthly (₹4,500/mo) - Floor + Classes</option>
-                  <option value="Student Pass">Student Pass (₹2,200/mo) - Standard Floor</option>
-                  <option value="Standard Semi-Annual">Standard Semi-Annual (₹16,500/6mo)</option>
-                  <option value="Day Pass">Day Pass (₹500/day)</option>
-                </select>
+              {/* Mandatory Emergency Contact Section */}
+              <div className="bg-surface-container/60 p-3.5 rounded-2xl border border-outline-variant/30 space-y-3">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-primary font-mono block">
+                  3. Emergency Contact Details
+                </span>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                  <div>
+                    <label className="block font-semibold text-on-surface mb-1">
+                      Contact Name <span className="text-error">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={newMemberEmergName}
+                      onChange={(e) => setNewMemberEmergName(e.target.value)}
+                      placeholder="e.g. Sunita Deshmukh"
+                      className="w-full bg-surface-container text-on-surface px-3 py-2 rounded-xl border border-outline-variant/40 focus:border-primary outline-none focus:ring-1 focus:ring-primary transition-all text-xs"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-semibold text-on-surface mb-1">
+                      Relationship <span className="text-error">*</span>
+                    </label>
+                    <select
+                      value={newMemberEmergRelation}
+                      onChange={(e) => setNewMemberEmergRelation(e.target.value)}
+                      className="w-full bg-surface-container text-on-surface px-3 py-2 rounded-xl border border-outline-variant/40 focus:border-primary outline-none focus:ring-1 focus:ring-primary transition-all text-xs cursor-pointer"
+                    >
+                      <option value="Parent / Guardian">Parent / Guardian</option>
+                      <option value="Mother">Mother</option>
+                      <option value="Father">Father</option>
+                      <option value="Spouse">Spouse</option>
+                      <option value="Sibling">Sibling</option>
+                      <option value="Friend">Friend</option>
+                      <option value="Physician">Physician / Doctor</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block font-semibold text-on-surface mb-1">
+                      Emergency Phone <span className="text-error">*</span>
+                    </label>
+                    <input
+                      type="tel"
+                      required
+                      value={newMemberEmergPhone}
+                      onChange={(e) => setNewMemberEmergPhone(e.target.value)}
+                      placeholder="+91 98201 00000"
+                      className="w-full bg-surface-container text-on-surface px-3 py-2 rounded-xl border border-outline-variant/40 focus:border-primary outline-none focus:ring-1 focus:ring-primary transition-all text-xs font-mono"
+                    />
+                  </div>
+                </div>
               </div>
 
-              <div className="pt-4 flex justify-end gap-3 border-t border-outline-variant/30">
+              {/* Form Buttons */}
+              <div className="pt-3 flex justify-end gap-3 border-t border-outline-variant/30">
                 <button
                   type="button"
                   onClick={closeModal}
-                  className="px-4 py-2 rounded-xl text-on-surface-variant hover:bg-surface-container font-medium transition-colors"
+                  className="px-4 py-2 rounded-xl text-on-surface-variant hover:bg-surface-container font-medium transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2.5 rounded-xl bg-primary text-on-primary font-semibold hover:opacity-90 transition-opacity shadow-lg shadow-primary/20"
+                  className="px-5 py-2.5 rounded-xl bg-primary text-on-primary font-semibold hover:opacity-90 transition-opacity shadow-lg shadow-primary/20 flex items-center gap-1.5 cursor-pointer"
                 >
-                  Complete Registration
+                  <span className="material-symbols-outlined text-[17px]">how_to_reg</span>
+                  <span>Complete KYC &amp; Register</span>
                 </button>
               </div>
             </form>
@@ -582,86 +799,546 @@ export const Modals: React.FC = () => {
           </div>
         )}
 
-        {/* Modal: Add Staff */}
+        {/* Modal: Add Staff & Physical Trainer */}
         {activeModal === 'add-staff' && (
           <div>
-            <h3 className="text-xl font-headline font-bold text-on-surface mb-1">Add New Staff Member</h3>
-            <p className="text-xs text-on-surface-variant mb-5">Register employee profile, set geofence permissions and assign shift hours.</p>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="w-2.5 h-2.5 rounded-full bg-primary animate-ping"></span>
+              <h3 className="text-xl font-headline font-bold text-on-surface">Register Staff &amp; Physical Trainer</h3>
+            </div>
+            <p className="text-xs text-on-surface-variant mb-4">
+              Mandatory onboarding KYC: Complete background verification, government Aadhaar, past fitness experience, academic degrees &amp; all document uploads required.
+            </p>
 
             <form
               onSubmit={(e) => {
                 e.preventDefault();
-                if (!staffName.trim()) return;
+                if (!staffName.trim()) {
+                  showToast('Missing Field', 'Please enter employee/trainer full name.', 'error');
+                  return;
+                }
+                if (!staffPhone.trim()) {
+                  showToast('Missing Field', 'Please enter employee phone number.', 'error');
+                  return;
+                }
+                if (!staffAadhaar.trim() || staffAadhaar.replace(/\s/g, '').length < 12) {
+                  showToast('Aadhaar Required', 'Please enter a valid 12-digit Aadhaar number.', 'error');
+                  return;
+                }
+                if (!staffAadhaarDoc) {
+                  showToast('Document Missing', 'Please upload a copy/scan of the Aadhaar card.', 'error');
+                  return;
+                }
+                if (!staffEmergName.trim() || !staffEmergPhone.trim()) {
+                  showToast('Emergency Contact Required', 'Please provide emergency contact name and phone.', 'error');
+                  return;
+                }
+                if (!staffPastWorkplace.trim()) {
+                  showToast('Past Experience Required', 'Please enter previous gym / workplace experience.', 'error');
+                  return;
+                }
+                if (!staffAcademicDegree.trim() || !staffAcademicInstitution.trim()) {
+                  showToast('Academic Qualification Required', 'Please enter academic degree and university/institution.', 'error');
+                  return;
+                }
+                if (!staffCertDoc && !staffAcademicDoc && !staffResumeDoc) {
+                  showToast('Document Required', 'Please upload at least one qualification certificate or resume.', 'error');
+                  return;
+                }
+
                 addStaff({
                   name: staffName,
                   role: staffRole,
-                  phone: staffPhone || '+1 (555) 000-0000',
-                  shiftHours: '06:00 - 14:00'
+                  phone: staffPhone,
+                  shiftHours: staffShiftHours,
+                  aadhaarNumber: staffAadhaar,
+                  aadhaarDocUrl: staffAadhaarDoc?.dataUrl,
+                  aadhaarDocName: staffAadhaarDoc?.name,
+                  emergencyContactName: staffEmergName,
+                  emergencyContactPhone: staffEmergPhone,
+                  emergencyContactRelation: staffEmergRelation,
+                  pastExperienceYears: staffExpYears,
+                  pastWorkplace: staffPastWorkplace,
+                  specializations: staffSpecializations,
+                  certifications: staffCertifications,
+                  academicDegree: staffAcademicDegree,
+                  academicInstitution: staffAcademicInstitution,
+                  academicYear: staffAcademicYear,
+                  certificationDocUrl: staffCertDoc?.dataUrl,
+                  certificationDocName: staffCertDoc?.name,
+                  academicDocUrl: staffAcademicDoc?.dataUrl,
+                  academicDocName: staffAcademicDoc?.name,
+                  resumeDocUrl: staffResumeDoc?.dataUrl,
+                  resumeDocName: staffResumeDoc?.name,
                 });
+
                 closeModal();
                 setStaffName('');
                 setStaffPhone('');
+                setStaffAadhaar('');
+                setStaffAadhaarDoc(null);
+                setStaffEmergName('');
+                setStaffEmergPhone('');
+                setStaffPastWorkplace('');
+                setStaffSpecializations('');
+                setStaffCertifications('');
+                setStaffCertDoc(null);
+                setStaffAcademicDegree('');
+                setStaffAcademicInstitution('');
+                setStaffAcademicYear('');
+                setStaffAcademicDoc(null);
+                setStaffResumeDoc(null);
               }}
-              className="space-y-4 text-sm"
+              className="space-y-4 text-xs"
             >
-              <div>
-                <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1.5">
-                  Full Name *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={staffName}
-                  onChange={(e) => setStaffName(e.target.value)}
-                  placeholder="e.g. Alex Mercer"
-                  className="w-full bg-surface-container text-on-surface px-4 py-2.5 rounded-xl border border-outline-variant/40 focus:border-primary outline-none focus:ring-1 focus:ring-primary transition-all"
-                />
+              {/* 1. Basic Employee Profile & Shift */}
+              <div className="bg-surface-container/60 p-3.5 rounded-2xl border border-outline-variant/30 space-y-3">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-primary font-mono block">
+                  1. Basic Profile &amp; Role
+                </span>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block font-semibold text-on-surface mb-1">
+                      Full Name *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={staffName}
+                      onChange={(e) => setStaffName(e.target.value)}
+                      placeholder="e.g. Vikramaditya Rao"
+                      className="w-full bg-surface-container text-on-surface px-3 py-2 rounded-xl border border-outline-variant/40 focus:border-primary outline-none focus:ring-1 focus:ring-primary text-xs"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-semibold text-on-surface mb-1">
+                      Assigned Role *
+                    </label>
+                    <select
+                      value={staffRole}
+                      onChange={(e) => setStaffRole(e.target.value as any)}
+                      className="w-full bg-surface-container text-on-surface px-3 py-2 rounded-xl border border-outline-variant/40 focus:border-primary outline-none focus:ring-1 focus:ring-primary text-xs cursor-pointer"
+                    >
+                      <option value="Senior Trainer">Senior Trainer (PT &amp; Floor Lead)</option>
+                      <option value="Personal Trainer">Personal Trainer (1-on-1 Coaching)</option>
+                      <option value="Yoga Instructor">Yoga &amp; Mind-Body Instructor</option>
+                      <option value="Operations Manager">Operations &amp; Branch Manager</option>
+                      <option value="Front Desk Lead">Front Desk Lead &amp; Cashier</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block font-semibold text-on-surface mb-1">
+                      Phone Number (WhatsApp Active) *
+                    </label>
+                    <input
+                      type="tel"
+                      required
+                      value={staffPhone}
+                      onChange={(e) => setStaffPhone(e.target.value)}
+                      placeholder="+91 99304 88122"
+                      className="w-full bg-surface-container text-on-surface px-3 py-2 rounded-xl border border-outline-variant/40 focus:border-primary outline-none text-xs font-mono"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-semibold text-on-surface mb-1">
+                      Shift Schedule Hours *
+                    </label>
+                    <select
+                      value={staffShiftHours}
+                      onChange={(e) => setStaffShiftHours(e.target.value)}
+                      className="w-full bg-surface-container text-on-surface px-3 py-2 rounded-xl border border-outline-variant/40 focus:border-primary outline-none text-xs cursor-pointer font-mono"
+                    >
+                      <option value="06:00 - 14:00">06:00 - 14:00 (Morning Rush Shift)</option>
+                      <option value="14:00 - 22:00">14:00 - 22:00 (Evening Peak Shift)</option>
+                      <option value="08:00 - 17:00">08:00 - 17:00 (Full Day Operations)</option>
+                      <option value="11:00 - 20:00">11:00 - 20:00 (Mid-Day Split Shift)</option>
+                    </select>
+                  </div>
+                </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1.5">
-                    Role
-                  </label>
-                  <select
-                    value={staffRole}
-                    onChange={(e) => setStaffRole(e.target.value as any)}
-                    className="w-full bg-surface-container text-on-surface px-4 py-2.5 rounded-xl border border-outline-variant/40 focus:border-primary outline-none focus:ring-1 focus:ring-primary transition-all"
-                  >
-                    <option value="Senior Trainer">Senior Trainer</option>
-                    <option value="Personal Trainer">Personal Trainer</option>
-                    <option value="Front Desk Lead">Front Desk Lead</option>
-                    <option value="Operations Manager">Operations Manager</option>
-                    <option value="Yoga Instructor">Yoga Instructor</option>
-                  </select>
+              {/* 2. Mandatory Aadhaar Identity & Document Upload */}
+              <div className="bg-surface-container/60 p-3.5 rounded-2xl border border-outline-variant/30 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-primary font-mono flex items-center gap-1.5">
+                    <span className="material-symbols-outlined text-[15px]">badge</span>
+                    <span>2. Government Aadhaar Card KYC</span>
+                  </span>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-bold">
+                    Mandatory
+                  </span>
                 </div>
+
                 <div>
-                  <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1.5">
-                    Phone Number
+                  <label className="block font-semibold text-on-surface mb-1">
+                    Aadhaar Card Number (12 Digits) *
                   </label>
                   <input
-                    type="tel"
-                    value={staffPhone}
-                    onChange={(e) => setStaffPhone(e.target.value)}
-                    placeholder="+1 (555) 000-0000"
-                    className="w-full bg-surface-container text-on-surface px-4 py-2.5 rounded-xl border border-outline-variant/40 focus:border-primary outline-none focus:ring-1 focus:ring-primary transition-all"
+                    type="text"
+                    required
+                    maxLength={14}
+                    value={staffAadhaar}
+                    onChange={(e) => {
+                      const digits = e.target.value.replace(/\D/g, '').slice(0, 12);
+                      const formatted = digits.replace(/(\d{4})(?=\d)/g, '$1 ');
+                      setStaffAadhaar(formatted);
+                    }}
+                    placeholder="7192 4810 9943"
+                    className="w-full bg-surface-container text-on-surface px-3 py-2 rounded-xl border border-outline-variant/40 focus:border-primary outline-none text-xs font-mono font-semibold tracking-wider"
                   />
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-on-surface mb-1">
+                    Upload Aadhaar Card Document (Front/Back) *
+                  </label>
+                  <div className="flex items-center gap-3">
+                    <label className="flex-1 border-2 border-dashed border-outline-variant/50 hover:border-primary/60 bg-surface-container hover:bg-surface-container-high rounded-xl p-3 flex items-center justify-center gap-2 cursor-pointer transition-all">
+                      <span className="material-symbols-outlined text-primary text-[20px]">cloud_upload</span>
+                      <span className="text-xs font-medium text-on-surface">
+                        {staffAadhaarDoc ? staffAadhaarDoc.name : 'Choose Aadhaar File / Photo (PDF, JPG, PNG)'}
+                      </span>
+                      <input
+                        type="file"
+                        accept="image/*,.pdf"
+                        className="hidden"
+                        onChange={(e) => handleFileUpload(e, setStaffAadhaarDoc)}
+                      />
+                    </label>
+                    {staffAadhaarDoc && (
+                      <button
+                        type="button"
+                        onClick={() => setStaffAadhaarDoc(null)}
+                        className="p-2 text-error hover:bg-error/10 rounded-lg transition-colors cursor-pointer"
+                        title="Remove file"
+                      >
+                        <span className="material-symbols-outlined text-[18px]">delete</span>
+                      </button>
+                    )}
+                  </div>
+                  {staffAadhaarDoc && (
+                    <div className="mt-1 flex items-center gap-2 text-[11px] text-emerald-500 font-medium">
+                      <span className="material-symbols-outlined text-[14px]">check_circle</span>
+                      <span>Attached: {staffAadhaarDoc.name}</span>
+                    </div>
+                  )}
                 </div>
               </div>
 
-              <div className="pt-4 flex justify-end gap-3 border-t border-outline-variant/30">
+              {/* 3. Emergency Contact Details */}
+              <div className="bg-surface-container/60 p-3.5 rounded-2xl border border-outline-variant/30 space-y-3">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-primary font-mono block">
+                  3. Emergency Contact Details (Mandatory)
+                </span>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                  <div>
+                    <label className="block font-semibold text-on-surface mb-1">
+                      Contact Name *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={staffEmergName}
+                      onChange={(e) => setStaffEmergName(e.target.value)}
+                      placeholder="e.g. Kavita Rao"
+                      className="w-full bg-surface-container text-on-surface px-3 py-2 rounded-xl border border-outline-variant/40 focus:border-primary outline-none text-xs"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-semibold text-on-surface mb-1">
+                      Relationship *
+                    </label>
+                    <select
+                      value={staffEmergRelation}
+                      onChange={(e) => setStaffEmergRelation(e.target.value)}
+                      className="w-full bg-surface-container text-on-surface px-3 py-2 rounded-xl border border-outline-variant/40 focus:border-primary outline-none text-xs cursor-pointer"
+                    >
+                      <option value="Spouse">Spouse</option>
+                      <option value="Parent">Parent</option>
+                      <option value="Sibling">Sibling</option>
+                      <option value="Friend">Friend</option>
+                      <option value="Guardian">Guardian</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block font-semibold text-on-surface mb-1">
+                      Emergency Phone *
+                    </label>
+                    <input
+                      type="tel"
+                      required
+                      value={staffEmergPhone}
+                      onChange={(e) => setStaffEmergPhone(e.target.value)}
+                      placeholder="+91 99304 77100"
+                      className="w-full bg-surface-container text-on-surface px-3 py-2 rounded-xl border border-outline-variant/40 focus:border-primary outline-none text-xs font-mono"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* 4. Past Professional Experience & Certifications */}
+              <div className="bg-surface-container/60 p-3.5 rounded-2xl border border-outline-variant/30 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-primary font-mono flex items-center gap-1.5">
+                    <span className="material-symbols-outlined text-[15px]">fitness_center</span>
+                    <span>4. Past Experience &amp; Trainer Certifications</span>
+                  </span>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-bold">
+                    Mandatory
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block font-semibold text-on-surface mb-1">
+                      Years of Experience *
+                    </label>
+                    <input
+                      type="number"
+                      min={0}
+                      max={40}
+                      required
+                      value={staffExpYears}
+                      onChange={(e) => setStaffExpYears(Number(e.target.value) || 0)}
+                      className="w-full bg-surface-container text-on-surface px-3 py-2 rounded-xl border border-outline-variant/40 focus:border-primary outline-none text-xs font-mono font-bold"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-semibold text-on-surface mb-1">
+                      Previous Gyms / Workplaces *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={staffPastWorkplace}
+                      onChange={(e) => setStaffPastWorkplace(e.target.value)}
+                      placeholder="e.g. Gold's Gym Indiranagar & Talwalkars"
+                      className="w-full bg-surface-container text-on-surface px-3 py-2 rounded-xl border border-outline-variant/40 focus:border-primary outline-none text-xs"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block font-semibold text-on-surface mb-1">
+                      Fitness Specializations
+                    </label>
+                    <input
+                      type="text"
+                      value={staffSpecializations}
+                      onChange={(e) => setStaffSpecializations(e.target.value)}
+                      placeholder="e.g. Hypertrophy, Powerlifting, HIIT, Mobility"
+                      className="w-full bg-surface-container text-on-surface px-3 py-2 rounded-xl border border-outline-variant/40 focus:border-primary outline-none text-xs"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-semibold text-on-surface mb-1">
+                      Certifications (e.g. ACE CPT, ACSM, ISSA)
+                    </label>
+                    <input
+                      type="text"
+                      value={staffCertifications}
+                      onChange={(e) => setStaffCertifications(e.target.value)}
+                      placeholder="e.g. ACE Certified Personal Trainer, CPR/AED"
+                      className="w-full bg-surface-container text-on-surface px-3 py-2 rounded-xl border border-outline-variant/40 focus:border-primary outline-none text-xs"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-on-surface mb-1">
+                    Upload Certification Credential Document (PDF/Image) *
+                  </label>
+                  <div className="flex items-center gap-3">
+                    <label className="flex-1 border-2 border-dashed border-outline-variant/50 hover:border-primary/60 bg-surface-container hover:bg-surface-container-high rounded-xl p-3 flex items-center justify-center gap-2 cursor-pointer transition-all">
+                      <span className="material-symbols-outlined text-primary text-[20px]">workspace_premium</span>
+                      <span className="text-xs font-medium text-on-surface">
+                        {staffCertDoc ? staffCertDoc.name : 'Upload Trainer Certification Document (PDF/JPG)'}
+                      </span>
+                      <input
+                        type="file"
+                        accept="image/*,.pdf"
+                        className="hidden"
+                        onChange={(e) => handleFileUpload(e, setStaffCertDoc)}
+                      />
+                    </label>
+                    {staffCertDoc && (
+                      <button
+                        type="button"
+                        onClick={() => setStaffCertDoc(null)}
+                        className="p-2 text-error hover:bg-error/10 rounded-lg transition-colors cursor-pointer"
+                        title="Remove file"
+                      >
+                        <span className="material-symbols-outlined text-[18px]">delete</span>
+                      </button>
+                    )}
+                  </div>
+                  {staffCertDoc && (
+                    <div className="mt-1 flex items-center gap-2 text-[11px] text-emerald-500 font-medium">
+                      <span className="material-symbols-outlined text-[14px]">check_circle</span>
+                      <span>Attached: {staffCertDoc.name}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* 5. Academic Qualifications & Document Vault */}
+              <div className="bg-surface-container/60 p-3.5 rounded-2xl border border-outline-variant/30 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-primary font-mono flex items-center gap-1.5">
+                    <span className="material-symbols-outlined text-[15px]">school</span>
+                    <span>5. Academic Qualifications &amp; Documents</span>
+                  </span>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-bold">
+                    Mandatory
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                  <div>
+                    <label className="block font-semibold text-on-surface mb-1">
+                      Academic Degree / Diploma *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={staffAcademicDegree}
+                      onChange={(e) => setStaffAcademicDegree(e.target.value)}
+                      placeholder="e.g. B.Sc. Sports Science / B.P.Ed"
+                      className="w-full bg-surface-container text-on-surface px-3 py-2 rounded-xl border border-outline-variant/40 focus:border-primary outline-none text-xs"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-semibold text-on-surface mb-1">
+                      University / Institution *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={staffAcademicInstitution}
+                      onChange={(e) => setStaffAcademicInstitution(e.target.value)}
+                      placeholder="e.g. Manipal Academy / Delhi Univ"
+                      className="w-full bg-surface-container text-on-surface px-3 py-2 rounded-xl border border-outline-variant/40 focus:border-primary outline-none text-xs"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-semibold text-on-surface mb-1">
+                      Graduation Year *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={staffAcademicYear}
+                      onChange={(e) => setStaffAcademicYear(e.target.value)}
+                      placeholder="2020"
+                      className="w-full bg-surface-container text-on-surface px-3 py-2 rounded-xl border border-outline-variant/40 focus:border-primary outline-none text-xs font-mono"
+                    />
+                  </div>
+                </div>
+
+                {/* Upload Degree Certificate */}
+                <div>
+                  <label className="block font-semibold text-on-surface mb-1">
+                    Upload Academic Degree Certificate (PDF/Image) *
+                  </label>
+                  <div className="flex items-center gap-3">
+                    <label className="flex-1 border-2 border-dashed border-outline-variant/50 hover:border-primary/60 bg-surface-container hover:bg-surface-container-high rounded-xl p-3 flex items-center justify-center gap-2 cursor-pointer transition-all">
+                      <span className="material-symbols-outlined text-primary text-[20px]">description</span>
+                      <span className="text-xs font-medium text-on-surface">
+                        {staffAcademicDoc ? staffAcademicDoc.name : 'Upload Degree / Marksheet Scan (PDF/JPG)'}
+                      </span>
+                      <input
+                        type="file"
+                        accept="image/*,.pdf"
+                        className="hidden"
+                        onChange={(e) => handleFileUpload(e, setStaffAcademicDoc)}
+                      />
+                    </label>
+                    {staffAcademicDoc && (
+                      <button
+                        type="button"
+                        onClick={() => setStaffAcademicDoc(null)}
+                        className="p-2 text-error hover:bg-error/10 rounded-lg transition-colors cursor-pointer"
+                        title="Remove file"
+                      >
+                        <span className="material-symbols-outlined text-[18px]">delete</span>
+                      </button>
+                    )}
+                  </div>
+                  {staffAcademicDoc && (
+                    <div className="mt-1 flex items-center gap-2 text-[11px] text-emerald-500 font-medium">
+                      <span className="material-symbols-outlined text-[14px]">check_circle</span>
+                      <span>Attached: {staffAcademicDoc.name}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Upload Resume / CV Document */}
+                <div>
+                  <label className="block font-semibold text-on-surface mb-1">
+                    Upload Professional Resume / CV (PDF/DOC) *
+                  </label>
+                  <div className="flex items-center gap-3">
+                    <label className="flex-1 border-2 border-dashed border-outline-variant/50 hover:border-primary/60 bg-surface-container hover:bg-surface-container-high rounded-xl p-3 flex items-center justify-center gap-2 cursor-pointer transition-all">
+                      <span className="material-symbols-outlined text-primary text-[20px]">badge</span>
+                      <span className="text-xs font-medium text-on-surface">
+                        {staffResumeDoc ? staffResumeDoc.name : 'Upload Comprehensive Trainer / Staff Resume (PDF)'}
+                      </span>
+                      <input
+                        type="file"
+                        accept="image/*,.pdf,.doc,.docx"
+                        className="hidden"
+                        onChange={(e) => handleFileUpload(e, setStaffResumeDoc)}
+                      />
+                    </label>
+                    {staffResumeDoc && (
+                      <button
+                        type="button"
+                        onClick={() => setStaffResumeDoc(null)}
+                        className="p-2 text-error hover:bg-error/10 rounded-lg transition-colors cursor-pointer"
+                        title="Remove file"
+                      >
+                        <span className="material-symbols-outlined text-[18px]">delete</span>
+                      </button>
+                    )}
+                  </div>
+                  {staffResumeDoc && (
+                    <div className="mt-1 flex items-center gap-2 text-[11px] text-emerald-500 font-medium">
+                      <span className="material-symbols-outlined text-[14px]">check_circle</span>
+                      <span>Attached: {staffResumeDoc.name}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Form Buttons */}
+              <div className="pt-3 flex justify-end gap-3 border-t border-outline-variant/30">
                 <button
                   type="button"
                   onClick={closeModal}
-                  className="px-4 py-2 rounded-xl text-on-surface-variant hover:bg-surface-container font-medium transition-colors"
+                  className="px-4 py-2 rounded-xl text-on-surface-variant hover:bg-surface-container font-medium transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2.5 rounded-xl bg-primary text-on-primary font-semibold hover:opacity-90 transition-opacity shadow-lg shadow-primary/20"
+                  className="px-5 py-2.5 rounded-xl bg-primary text-on-primary font-semibold hover:opacity-90 transition-opacity shadow-lg shadow-primary/20 flex items-center gap-1.5 cursor-pointer"
                 >
-                  Save Employee
+                  <span className="material-symbols-outlined text-[17px]">how_to_reg</span>
+                  <span>Complete Registration &amp; Onboard Staff</span>
                 </button>
               </div>
             </form>
@@ -732,25 +1409,221 @@ export const Modals: React.FC = () => {
 
         {/* Modal: View Staff Profile */}
         {activeModal === 'view-staff-profile' && modalPayload && (
-          <div>
-            <h3 className="text-xl font-headline font-bold text-on-surface mb-1">Staff Profile: {modalPayload.name}</h3>
-            <p className="text-xs text-on-surface-variant mb-4">Role: {modalPayload.role} • ID: {modalPayload.staffCode}</p>
-            <div className="bg-surface-container rounded-xl p-4 flex items-center gap-4 mb-4">
-              <img src={modalPayload.photoUrl} alt={modalPayload.name} className="w-16 h-16 rounded-full object-cover ring-2 ring-primary/20" />
+          <div className="space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-outline-variant/30">
               <div>
-                <p className="text-sm font-semibold text-on-surface">{modalPayload.name}</p>
-                <p className="text-xs text-on-surface-variant">Phone: {modalPayload.phone}</p>
-                <p className="text-xs text-on-surface-variant">Shift: {modalPayload.shiftHours} ({modalPayload.shiftType})</p>
-                <span className={`inline-flex items-center gap-1 mt-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold ${
-                  modalPayload.geofenceStatus === 'Verified Inside' ? 'bg-primary/10 text-primary' : 'bg-error/15 text-error'
-                }`}>
-                  {modalPayload.geofenceStatus}
+                <span className="text-[10px] font-mono uppercase tracking-widest text-primary font-bold">
+                  VERIFIED EMPLOYEE DOSSIER
                 </span>
+                <h3 className="text-xl font-headline font-bold text-on-surface">
+                  {modalPayload.name}
+                </h3>
+                <p className="text-xs text-on-surface-variant font-mono mt-0.5">
+                  ID: {modalPayload.staffCode} • Role: {modalPayload.role}
+                </p>
+              </div>
+              <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold ${
+                modalPayload.geofenceStatus === 'Verified Inside'
+                  ? 'bg-emerald-500/10 text-emerald-500'
+                  : 'bg-error/15 text-error'
+              }`}>
+                <span className="w-1.5 h-1.5 rounded-full bg-current"></span>
+                <span>{modalPayload.geofenceStatus}</span>
+              </span>
+            </div>
+
+            {/* Profile Avatar & Shifts */}
+            <div className="bg-surface-container rounded-2xl p-4 flex items-center gap-4 border border-outline-variant/30">
+              <img
+                src={modalPayload.photoUrl}
+                alt={modalPayload.name}
+                className="w-16 h-16 rounded-full object-cover ring-2 ring-primary/40 shrink-0"
+              />
+              <div className="space-y-1 text-xs">
+                <div className="font-semibold text-on-surface text-sm">{modalPayload.name}</div>
+                <div className="text-on-surface-variant font-mono flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[14px]">phone</span>
+                  <span>{modalPayload.phone}</span>
+                </div>
+                <div className="text-on-surface-variant flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[14px]">schedule</span>
+                  <span>Shift: {modalPayload.shiftHours} ({modalPayload.shiftType || 'Full Day'})</span>
+                </div>
               </div>
             </div>
-            <div className="flex justify-end gap-2 pt-4 border-t border-outline-variant/30">
-              <button type="button" onClick={closeModal} className="px-4 py-2 rounded-xl bg-surface-container text-on-surface font-medium hover:bg-surface-container-high transition-colors text-xs">
-                Close
+
+            {/* Aadhaar Verification & Emergency Contact */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+              {/* Aadhaar Card */}
+              <div className="p-3.5 bg-surface-container rounded-2xl border border-outline-variant/30 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-on-surface flex items-center gap-1.5">
+                    <span className="material-symbols-outlined text-primary text-[16px]">badge</span>
+                    <span>Government Aadhaar</span>
+                  </span>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 font-bold">
+                    UIDAI Verified
+                  </span>
+                </div>
+                <div className="font-mono text-sm font-bold text-primary tracking-wider">
+                  {modalPayload.aadhaarNumber || '7192 •••• 9943'}
+                </div>
+                <div className="pt-1">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setPreviewDoc({
+                        title: `${modalPayload.name} - Government Aadhaar Document`,
+                        docName: modalPayload.aadhaarDocName || 'Aadhaar_KYC_Verified.pdf',
+                        docUrl: modalPayload.aadhaarDocUrl || 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=800&q=80',
+                      })
+                    }
+                    className="text-[11px] font-semibold text-primary hover:underline flex items-center gap-1 cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-[14px]">visibility</span>
+                    <span>View Aadhaar Document ({modalPayload.aadhaarDocName || 'aadhaar_card.pdf'})</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Emergency Contact */}
+              <div className="p-3.5 bg-surface-container rounded-2xl border border-outline-variant/30 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-on-surface flex items-center gap-1.5">
+                    <span className="material-symbols-outlined text-error text-[16px]">emergency</span>
+                    <span>Emergency Contact</span>
+                  </span>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant font-medium">
+                    {modalPayload.emergencyContactRelation || 'Spouse'}
+                  </span>
+                </div>
+                <div className="font-semibold text-on-surface">
+                  {modalPayload.emergencyContactName || 'Family Contact Registered'}
+                </div>
+                <div className="font-mono text-[11px] text-on-surface-variant flex items-center justify-between">
+                  <span>{modalPayload.emergencyContactPhone || modalPayload.phone}</span>
+                  <a
+                    href={`https://api.whatsapp.com/send?phone=${(modalPayload.emergencyContactPhone || modalPayload.phone).replace(/[^0-9]/g, '')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-emerald-500 hover:underline flex items-center gap-0.5 text-[10px] font-bold"
+                  >
+                    <span className="material-symbols-outlined text-[12px]">chat</span>
+                    <span>WhatsApp</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            {/* Past Professional Experience & Certifications */}
+            <div className="p-3.5 bg-surface-container rounded-2xl border border-outline-variant/30 space-y-2 text-xs">
+              <span className="font-bold text-on-surface flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-primary text-[16px]">fitness_center</span>
+                <span>Past Professional Experience &amp; Specializations</span>
+              </span>
+              <div className="grid grid-cols-2 gap-2 pt-1">
+                <div>
+                  <span className="text-on-surface-variant text-[11px] block">Experience</span>
+                  <span className="font-semibold text-on-surface font-mono">
+                    {modalPayload.pastExperienceYears !== undefined ? `${modalPayload.pastExperienceYears} Years in Fitness` : '5+ Years in Fitness'}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-on-surface-variant text-[11px] block">Previous Gyms</span>
+                  <span className="font-semibold text-on-surface">
+                    {modalPayload.pastWorkplace || "Gold's Gym & Cult.fit"}
+                  </span>
+                </div>
+              </div>
+              <div>
+                <span className="text-on-surface-variant text-[11px] block">Specializations</span>
+                <span className="text-on-surface">
+                  {modalPayload.specializations || 'Strength Coaching, Hypertrophy, Mobility, Core Stability'}
+                </span>
+              </div>
+              <div className="pt-1 flex items-center justify-between border-t border-outline-variant/20">
+                <div>
+                  <span className="text-on-surface-variant text-[11px] block">Certifications</span>
+                  <span className="font-semibold text-on-surface text-[11px]">
+                    {modalPayload.certifications || 'ACE-CPT, ISSA Fitness Trainer, CPR/AED'}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setPreviewDoc({
+                      title: `${modalPayload.name} - Professional Certification Credentials`,
+                      docName: modalPayload.certificationDocName || 'Trainer_Certificate_Credential.pdf',
+                      docUrl: modalPayload.certificationDocUrl || 'https://images.unsplash.com/photo-1606326608606-aa0b62935f2b?auto=format&fit=crop&w=800&q=80',
+                    })
+                  }
+                  className="text-[11px] font-semibold text-primary hover:underline flex items-center gap-1 cursor-pointer shrink-0"
+                >
+                  <span className="material-symbols-outlined text-[14px]">workspace_premium</span>
+                  <span>View Certificate</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Academic Qualifications & Document Vault */}
+            <div className="p-3.5 bg-surface-container rounded-2xl border border-outline-variant/30 space-y-2 text-xs">
+              <span className="font-bold text-on-surface flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-primary text-[16px]">school</span>
+                <span>Academic Qualifications &amp; Resume Vault</span>
+              </span>
+              <div className="flex justify-between items-center pt-1">
+                <div>
+                  <div className="font-semibold text-on-surface">
+                    {modalPayload.academicDegree || 'B.Sc. Exercise & Sports Science'}
+                  </div>
+                  <div className="text-on-surface-variant text-[11px]">
+                    {modalPayload.academicInstitution || 'Manipal Academy of Higher Education'} • Class of {modalPayload.academicYear || '2020'}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setPreviewDoc({
+                        title: `${modalPayload.name} - Academic Degree Certificate`,
+                        docName: modalPayload.academicDocName || 'Academic_Degree_Certificate.pdf',
+                        docUrl: modalPayload.academicDocUrl || 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=800&q=80',
+                      })
+                    }
+                    className="p-1.5 rounded-lg bg-surface-container-high hover:bg-surface-bright text-primary text-[11px] font-semibold flex items-center gap-1 cursor-pointer"
+                    title="View Degree Certificate"
+                  >
+                    <span className="material-symbols-outlined text-[14px]">school</span>
+                    <span>Degree</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setPreviewDoc({
+                        title: `${modalPayload.name} - Curriculum Vitae / Resume`,
+                        docName: modalPayload.resumeDocName || 'Employee_CV_Resume.pdf',
+                        docUrl: modalPayload.resumeDocUrl || 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=800&q=80',
+                      })
+                    }
+                    className="p-1.5 rounded-lg bg-primary text-on-primary text-[11px] font-semibold flex items-center gap-1 cursor-pointer hover:opacity-90"
+                    title="View Employee Resume"
+                  >
+                    <span className="material-symbols-outlined text-[14px]">description</span>
+                    <span>Resume</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Actions */}
+            <div className="flex justify-end gap-2 pt-3 border-t border-outline-variant/30">
+              <button
+                type="button"
+                onClick={closeModal}
+                className="px-4 py-2 rounded-xl bg-surface-container text-on-surface font-medium hover:bg-surface-container-high transition-colors text-xs cursor-pointer"
+              >
+                Close Dossier
               </button>
             </div>
           </div>
@@ -975,6 +1848,77 @@ export const Modals: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Document Lightbox / Verification Preview */}
+      {previewDoc && (
+        <div className="fixed inset-0 z-[60] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-150">
+          <div className="bg-surface-container-high border border-outline-variant/40 rounded-3xl w-full max-w-2xl p-6 shadow-2xl relative flex flex-col max-h-[90vh]">
+            <div className="flex items-center justify-between pb-3 border-b border-outline-variant/30">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary text-[22px]">verified_user</span>
+                <div>
+                  <h4 className="text-sm font-headline font-bold text-on-surface">{previewDoc.title}</h4>
+                  <p className="text-[11px] font-mono text-on-surface-variant">{previewDoc.docName || 'Document_Verified.pdf'}</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setPreviewDoc(null)}
+                className="p-1 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container"
+              >
+                <span className="material-symbols-outlined text-[20px]">close</span>
+              </button>
+            </div>
+
+            <div className="py-4 flex-1 flex flex-col items-center justify-center min-h-[300px] overflow-hidden bg-surface-container-low rounded-2xl my-2 border border-outline-variant/20 p-2">
+              {previewDoc.docUrl && (previewDoc.docUrl.startsWith('data:image') || previewDoc.docUrl.startsWith('http')) ? (
+                <img
+                  src={previewDoc.docUrl}
+                  alt={previewDoc.title}
+                  className="max-h-[60vh] max-w-full object-contain rounded-xl shadow-md"
+                />
+              ) : (
+                <div className="text-center p-8 space-y-3">
+                  <span className="material-symbols-outlined text-primary text-[48px]">picture_as_pdf</span>
+                  <div className="text-xs font-semibold text-on-surface">{previewDoc.docName}</div>
+                  <div className="text-[11px] text-on-surface-variant">Cryptographically signed digital copy stored in local secure vault.</div>
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center justify-between pt-3 border-t border-outline-variant/30 text-xs">
+              <span className="text-[11px] text-emerald-500 font-semibold flex items-center gap-1">
+                <span className="material-symbols-outlined text-[14px]">check_circle</span>
+                <span>UIDAI / Academic Registry Verified</span>
+              </span>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const a = document.createElement('a');
+                    a.href = previewDoc.docUrl || '#';
+                    a.download = previewDoc.docName || 'verified_document.pdf';
+                    a.click();
+                    showToast('Document Downloaded', `Saved ${previewDoc.docName}`, 'success');
+                  }}
+                  className="px-3.5 py-1.5 rounded-xl bg-primary text-on-primary font-semibold flex items-center gap-1.5 hover:opacity-90"
+                >
+                  <span className="material-symbols-outlined text-[16px]">download</span>
+                  <span>Download Document</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPreviewDoc(null)}
+                  className="px-3.5 py-1.5 rounded-xl bg-surface-container text-on-surface hover:bg-surface-container-high font-medium"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

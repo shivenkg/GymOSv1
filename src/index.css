@@ -340,3 +340,18 @@ html {
   transform: translateY(-8px) scale(1.02) rotateX(2deg);
   box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.25), 0 10px 15px -5px rgba(2, 132, 199, 0.2);
 }
+
+@keyframes cinematicPulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(229, 9, 20, 0.4), 0 4px 14px 0 rgba(229, 9, 20, 0.25);
+  }
+  50% {
+    transform: scale(1.025);
+    box-shadow: 0 0 0 8px rgba(229, 9, 20, 0), 0 8px 24px 0 rgba(229, 9, 20, 0.55);
+  }
+}
+
+.animate-cinematic-pulse {
+  animation: cinematicPulse 2.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}

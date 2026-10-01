@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useGym } from '../context/GymContext';
 import { AsyncDataState } from '../components/AsyncDataState';
+import { BiometricAttendanceScanner } from '../components/BiometricAttendanceScanner';
 
 export const AttendanceView: React.FC = () => {
   const {
@@ -22,6 +23,7 @@ export const AttendanceView: React.FC = () => {
   const [filterStatus, setFilterStatus] = useState<'All' | 'Allowed' | 'Access Denied'>('All');
   const [isScanningActive, setIsScanningActive] = useState(false);
   const [localCheckedInIds, setLocalCheckedInIds] = useState<Record<string, boolean>>({});
+  const [terminalMode, setTerminalMode] = useState<'biometric' | 'qr'>('biometric');
 
   const handleSimulateScan = () => {
     setIsScanningActive(true);
@@ -147,6 +149,20 @@ export const AttendanceView: React.FC = () => {
 
         <div className="flex items-center gap-2.5">
           <button
+            onClick={() => setTerminalMode(prev => prev === 'biometric' ? 'qr' : 'biometric')}
+            className={`flex items-center gap-1.5 px-3.5 py-2 border rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer ${
+              terminalMode === 'biometric'
+                ? 'bg-cyan-500/15 border-cyan-500/40 text-cyan-400 hover:bg-cyan-500/25 shadow-cyan-500/10'
+                : 'bg-primary/15 border-primary/40 text-primary hover:bg-primary/25'
+            }`}
+            title="Toggle between Live Device Camera Biometrics and Simulated QR Terminal"
+          >
+            <span className="material-symbols-outlined text-[17px]">
+              {terminalMode === 'biometric' ? 'face' : 'qr_code_scanner'}
+            </span>
+            <span>{terminalMode === 'biometric' ? 'Device Camera Face-ID' : 'QR Scanner Mode'}</span>
+          </button>
+          <button
             onClick={handleExportCSV}
             className="flex items-center gap-1.5 px-3.5 py-2 bg-surface-container-low hover:bg-surface-container-high border border-outline-variant/30 rounded-xl text-xs font-semibold text-on-surface transition-all shadow-xs cursor-pointer"
           >
@@ -254,161 +270,193 @@ export const AttendanceView: React.FC = () => {
       {/* Top Section: Bento Grid layout for QR Scanner Terminal, Occupancy, and Quick Stats */}
       <AsyncDataState entityName="Attendance Telemetry">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left Column: Live QR Scanner Terminal (7 cols) */}
-        <div className="lg:col-span-7 bg-surface-container rounded-2xl p-6 flex flex-col justify-between relative overflow-hidden border border-outline-variant/30">
-          {/* Decorative ambient glow */}
-          <div className="absolute -right-20 -top-20 w-64 h-64 bg-primary/10 rounded-full blur-3xl pointer-events-none"></div>
-
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <span
-                  className={`w-3 h-3 rounded-full ${
-                    isTerminalLocked ? 'bg-error' : 'bg-primary animate-pulse'
-                  }`}
-                ></span>
-                <span className="text-lg font-headline font-bold text-on-surface">
-                  Live Terminal #04 - Main Entrance
+        {/* Left Column: Terminal (Biometric Face-ID vs QR Scanner) (7 cols) */}
+        <div className="lg:col-span-7 flex flex-col justify-between">
+          {terminalMode === 'biometric' ? (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between px-1">
+                <span className="text-[11px] font-mono text-cyan-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+                  <span>BIOMETRIC CAMERA ACTIVE</span>
                 </span>
+                <button
+                  type="button"
+                  onClick={() => setTerminalMode('qr')}
+                  className="text-xs text-on-surface-variant hover:text-primary flex items-center gap-1 cursor-pointer font-medium"
+                >
+                  <span className="material-symbols-outlined text-[15px]">swap_horiz</span>
+                  <span>Switch to QR Pass Mode</span>
+                </button>
               </div>
-              <span
-                className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                  isTerminalLocked ? 'bg-error/15 text-error' : 'bg-primary/15 text-primary'
-                }`}
-              >
-                {isTerminalLocked ? 'TERMINAL LOCKED' : 'SYSTEM ACTIVE'}
-              </span>
+              <BiometricAttendanceScanner />
             </div>
-            <p className="text-xs text-on-surface-variant mb-5">
-              Position member smartphone or wristband approx. 15cm from lens for instant biometric/QR verification.
-            </p>
-          </div>
+          ) : (
+            <div className="bg-surface-container rounded-2xl p-6 flex flex-col justify-between relative overflow-hidden border border-outline-variant/30 h-full">
+              {/* Decorative ambient glow */}
+              <div className="absolute -right-20 -top-20 w-64 h-64 bg-primary/10 rounded-full blur-3xl pointer-events-none"></div>
 
-          {/* Simulated Camera Feed Box */}
-          <div
-            className={`relative w-full h-72 bg-surface-container-low rounded-2xl overflow-hidden flex items-center justify-center mb-5 group border ${
-              isScanningActive ? 'border-primary ring-2 ring-primary/40' : 'border-outline-variant/30'
-            }`}
-          >
-            {/* Background Mock Camera View */}
-            <div
-              className="absolute inset-0 bg-cover bg-center opacity-40 transition-opacity"
-              style={{
-                backgroundImage:
-                  "url('https://lh3.googleusercontent.com/aida-public/AB6AXuCrIikuUxBYkm1nQqvJybui807YbSA_gPajB0oEvr2fQA_OM0OtjwHrO91MmzoTTnhYli_03-kyC-zqo5WTPW5AFfKzh14vMUpNabPayQG-Ke3ohF8QCnmnbslowKCTixO8G9cJqMkkq4WsQA99LMYQyervgGW1kfsGoGL__rLIcxiYCkSHXbxZmrEufHzC5mwd0nxYd8uP3xfgjryKdVHsGJe8vrMf3qbPAzVG5mIF3VSjvrSUvI3VEw')"
-              }}
-            ></div>
-
-            {/* Scanner Overlay Grid */}
-            <div className="absolute inset-0 bg-[linear-gradient(to_right,#7dd3fc0d_1px,transparent_1px),linear-gradient(to_bottom,#7dd3fc0d_1px,transparent_1px)] bg-[size:24px_24px]"></div>
-
-            {/* Scanning Reticle */}
-            <div
-              className={`relative w-48 h-48 border-2 rounded-xl flex items-center justify-center transition-all ${
-                isTerminalLocked
-                  ? 'border-error/60'
-                  : isScanningActive
-                  ? 'border-primary scale-105 shadow-[0_0_30px_rgba(125,211,252,0.4)]'
-                  : 'border-primary/60 animate-pulse'
-              }`}
-            >
-              <div
-                className={`absolute top-0 left-0 w-4 h-4 border-t-4 border-l-4 ${
-                  isTerminalLocked ? 'border-error' : 'border-primary'
-                }`}
-              ></div>
-              <div
-                className={`absolute top-0 right-0 w-4 h-4 border-t-4 border-r-4 ${
-                  isTerminalLocked ? 'border-error' : 'border-primary'
-                }`}
-              ></div>
-              <div
-                className={`absolute bottom-0 left-0 w-4 h-4 border-b-4 border-l-4 ${
-                  isTerminalLocked ? 'border-error' : 'border-primary'
-                }`}
-              ></div>
-              <div
-                className={`absolute bottom-0 right-0 w-4 h-4 border-b-4 border-r-4 ${
-                  isTerminalLocked ? 'border-error' : 'border-primary'
-                }`}
-              ></div>
-
-              {!isTerminalLocked && (
-                <div className="w-full h-0.5 bg-primary shadow-[0_0_12px_#7dd3fc] absolute animate-bounce"></div>
-              )}
-
-              <span
-                className={`material-symbols-outlined text-[48px] ${
-                  isTerminalLocked ? 'text-error opacity-60' : 'text-primary opacity-80'
-                }`}
-              >
-                {isTerminalLocked ? 'lock' : 'qr_code_scanner'}
-              </span>
-            </div>
-
-            {/* Floating Instant Verification Feedback Card */}
-            {lastScannedMember && (
-              <div className="absolute bottom-4 left-4 right-4 bg-surface/90 backdrop-blur-md p-3 rounded-xl flex items-center justify-between shadow-2xl border-l-4 border-primary border border-outline-variant/40">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container font-headline font-bold text-xs">
-                    {lastScannedMember.name
-                      .split(' ')
-                      .map((n) => n[0])
-                      .join('')}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`w-3 h-3 rounded-full ${
+                        isTerminalLocked ? 'bg-error' : 'bg-primary animate-pulse'
+                      }`}
+                    ></span>
+                    <span className="text-lg font-headline font-bold text-on-surface">
+                      Live Terminal #04 - Main Entrance
+                    </span>
                   </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-bold text-on-surface">
-                        {lastScannedMember.allowed ? 'Access Granted' : 'Access Denied'}
-                      </span>
-                      <span
-                        className={`px-2 py-0.5 text-[10px] font-bold rounded-full ${
-                          lastScannedMember.allowed ? 'bg-primary/20 text-primary' : 'bg-error/20 text-error'
-                        }`}
-                      >
-                        {lastScannedMember.plan}
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-on-surface-variant">
-                      {lastScannedMember.name} • {lastScannedMember.timestamp}
-                    </p>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setTerminalMode('biometric')}
+                      className="px-2.5 py-1 rounded-lg bg-cyan-500/15 text-cyan-400 hover:bg-cyan-500/25 text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer border border-cyan-500/30"
+                    >
+                      <span className="material-symbols-outlined text-[15px]">face</span>
+                      <span>Switch to Face-ID</span>
+                    </button>
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                        isTerminalLocked ? 'bg-error/15 text-error' : 'bg-primary/15 text-primary'
+                      }`}
+                    >
+                      {isTerminalLocked ? 'TERMINAL LOCKED' : 'SYSTEM ACTIVE'}
+                    </span>
                   </div>
                 </div>
-                <span
-                  className={`material-symbols-outlined text-[28px] ${
-                    lastScannedMember.allowed ? 'text-primary' : 'text-error'
+                <p className="text-xs text-on-surface-variant mb-5">
+                  Position member smartphone QR code or RFID wristband approx. 15cm from lens for instant turnstile verification.
+                </p>
+              </div>
+
+              {/* Simulated Camera Feed Box */}
+              <div
+                className={`relative w-full h-72 bg-surface-container-low rounded-2xl overflow-hidden flex items-center justify-center mb-5 group border ${
+                  isScanningActive ? 'border-primary ring-2 ring-primary/40' : 'border-outline-variant/30'
+                }`}
+              >
+                {/* Background Mock Camera View */}
+                <div
+                  className="absolute inset-0 bg-cover bg-center opacity-40 transition-opacity"
+                  style={{
+                    backgroundImage:
+                      "url('https://lh3.googleusercontent.com/aida-public/AB6AXuCrIikuUxBYkm1nQqvJybui807YbSA_gPajB0oEvr2fQA_OM0OtjwHrO91MmzoTTnhYli_03-kyC-zqo5WTPW5AFfKzh14vMUpNabPayQG-Ke3ohF8QCnmnbslowKCTixO8G9cJqMkkq4WsQA99LMYQyervgGW1kfsGoGL__rLIcxiYCkSHXbxZmrEufHzC5mwd0nxYd8uP3xfgjryKdVHsGJe8vrMf3qbPAzVG5mIF3VSjvrSUvI3VEw')"
+                  }}
+                ></div>
+
+                {/* Scanner Overlay Grid */}
+                <div className="absolute inset-0 bg-[linear-gradient(to_right,#7dd3fc0d_1px,transparent_1px),linear-gradient(to_bottom,#7dd3fc0d_1px,transparent_1px)] bg-[size:24px_24px]"></div>
+
+                {/* Scanning Reticle */}
+                <div
+                  className={`relative w-48 h-48 border-2 rounded-xl flex items-center justify-center transition-all ${
+                    isTerminalLocked
+                      ? 'border-error/60'
+                      : isScanningActive
+                      ? 'border-primary scale-105 shadow-[0_0_30px_rgba(125,211,252,0.4)]'
+                      : 'border-primary/60 animate-pulse'
                   }`}
                 >
-                  {lastScannedMember.allowed ? 'check_circle' : 'cancel'}
-                </span>
-              </div>
-            )}
-          </div>
+                  <div
+                    className={`absolute top-0 left-0 w-4 h-4 border-t-4 border-l-4 ${
+                      isTerminalLocked ? 'border-error' : 'border-primary'
+                    }`}
+                  ></div>
+                  <div
+                    className={`absolute top-0 right-0 w-4 h-4 border-t-4 border-r-4 ${
+                      isTerminalLocked ? 'border-error' : 'border-primary'
+                    }`}
+                  ></div>
+                  <div
+                    className={`absolute bottom-0 left-0 w-4 h-4 border-b-4 border-l-4 ${
+                      isTerminalLocked ? 'border-error' : 'border-primary'
+                    }`}
+                  ></div>
+                  <div
+                    className={`absolute bottom-0 right-0 w-4 h-4 border-b-4 border-r-4 ${
+                      isTerminalLocked ? 'border-error' : 'border-primary'
+                    }`}
+                  ></div>
 
-          {/* Terminal Actions */}
-          <div className="flex items-center gap-3">
-            <button
-              onClick={handleSimulateScan}
-              disabled={isTerminalLocked}
-              className="flex-1 bg-primary text-on-primary py-3 px-4 rounded-xl font-semibold text-sm hover:brightness-110 transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary/20 disabled:opacity-40"
-            >
-              <span className="material-symbols-outlined text-[18px]">bolt</span>
-              <span>Simulate Next Scan</span>
-            </button>
-            <button
-              onClick={toggleTerminalLock}
-              className={`py-3 px-4 rounded-xl font-medium text-sm transition-all flex items-center justify-center gap-2 border border-outline-variant/40 ${
-                isTerminalLocked
-                  ? 'bg-error/20 text-error hover:bg-error/30'
-                  : 'bg-surface-container-high text-on-surface hover:bg-surface-bright'
-              }`}
-            >
-              <span className="material-symbols-outlined text-[18px]">
-                {isTerminalLocked ? 'lock_open' : 'lock'}
-              </span>
-              <span>{isTerminalLocked ? 'Unlock Terminal' : 'Lock Terminal'}</span>
-            </button>
-          </div>
+                  {!isTerminalLocked && (
+                    <div className="w-full h-0.5 bg-primary shadow-[0_0_12px_#7dd3fc] absolute animate-bounce"></div>
+                  )}
+
+                  <span
+                    className={`material-symbols-outlined text-[48px] ${
+                      isTerminalLocked ? 'text-error opacity-60' : 'text-primary opacity-80'
+                    }`}
+                  >
+                    {isTerminalLocked ? 'lock' : 'qr_code_scanner'}
+                  </span>
+                </div>
+
+                {/* Floating Instant Verification Feedback Card */}
+                {lastScannedMember && (
+                  <div className="absolute bottom-4 left-4 right-4 bg-surface/90 backdrop-blur-md p-3 rounded-xl flex items-center justify-between shadow-2xl border-l-4 border-primary border border-outline-variant/40">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container font-headline font-bold text-xs">
+                        {lastScannedMember.name
+                          .split(' ')
+                          .map((n) => n[0])
+                          .join('')}
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-bold text-on-surface">
+                            {lastScannedMember.allowed ? 'Access Granted' : 'Access Denied'}
+                          </span>
+                          <span
+                            className={`px-2 py-0.5 text-[10px] font-bold rounded-full ${
+                              lastScannedMember.allowed ? 'bg-primary/20 text-primary' : 'bg-error/20 text-error'
+                            }`}
+                          >
+                            {lastScannedMember.plan}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-on-surface-variant">
+                          {lastScannedMember.name} • {lastScannedMember.timestamp}
+                        </p>
+                      </div>
+                    </div>
+                    <span
+                      className={`material-symbols-outlined text-[28px] ${
+                        lastScannedMember.allowed ? 'text-primary' : 'text-error'
+                      }`}
+                    >
+                      {lastScannedMember.allowed ? 'check_circle' : 'cancel'}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* Terminal Actions */}
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={handleSimulateScan}
+                  disabled={isTerminalLocked}
+                  className="flex-1 bg-primary text-on-primary py-3 px-4 rounded-xl font-semibold text-sm hover:brightness-110 transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary/20 disabled:opacity-40"
+                >
+                  <span className="material-symbols-outlined text-[18px]">bolt</span>
+                  <span>Simulate Next QR Scan</span>
+                </button>
+                <button
+                  onClick={toggleTerminalLock}
+                  className={`py-3 px-4 rounded-xl font-medium text-sm transition-all flex items-center justify-center gap-2 border border-outline-variant/40 ${
+                    isTerminalLocked
+                      ? 'bg-error/20 text-error hover:bg-error/30'
+                      : 'bg-surface-container-high text-on-surface hover:bg-surface-bright'
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-[18px]">
+                    {isTerminalLocked ? 'lock_open' : 'lock'}
+                  </span>
+                  <span>{isTerminalLocked ? 'Unlock Terminal' : 'Lock Terminal'}</span>
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Right Column: Occupancy Gauge & Peak Hour Metrics (5 cols) */}
@@ -580,11 +628,17 @@ export const AttendanceView: React.FC = () => {
                       </span>
                     </td>
                     <td className="py-3.5 px-4 text-on-surface-variant font-mono">{log.timeFormatted}</td>
-                    <td className="py-3.5 px-4 flex items-center gap-1.5 text-on-surface-variant">
-                      <span className="material-symbols-outlined text-[16px] text-primary">
-                        {log.method === 'QR Scanner' ? 'qr_code_scanner' : 'badge'}
+                    <td className="py-3.5 px-4">
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${
+                        log.method === 'Biometric Camera'
+                          ? 'bg-cyan-500/15 text-cyan-400 border border-cyan-500/30'
+                          : 'bg-surface-container-high text-on-surface'
+                      }`}>
+                        <span className="material-symbols-outlined text-[14px]">
+                          {log.method === 'Biometric Camera' ? 'face' : log.method === 'QR Scanner' ? 'qr_code_scanner' : 'badge'}
+                        </span>
+                        <span>{log.method}</span>
                       </span>
-                      <span>{log.method}</span>
                     </td>
                     <td className="py-3.5 px-4">
                       <span
@@ -600,10 +654,11 @@ export const AttendanceView: React.FC = () => {
                     </td>
                     <td className="py-3.5 px-4 text-right">
                       <button
-                        onClick={() => alert(`Details for ${log.memberName} on ${log.terminal}`)}
-                        className="text-on-surface-variant hover:text-on-surface p-1.5 rounded-lg hover:bg-surface-container-high transition-colors"
+                        onClick={() => showToast('Attendance Details', `${log.memberName} authenticated via ${log.method} at ${log.terminal}`, 'info')}
+                        className="text-on-surface-variant hover:text-on-surface p-1.5 rounded-lg hover:bg-surface-container-high transition-colors cursor-pointer"
+                        title="View Log Details"
                       >
-                        <span className="material-symbols-outlined text-[18px]">more_vert</span>
+                        <span className="material-symbols-outlined text-[18px]">info</span>
                       </button>
                     </td>
                   </tr>

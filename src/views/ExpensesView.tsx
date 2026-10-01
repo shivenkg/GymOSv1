@@ -44,7 +44,7 @@ export const ExpensesView: React.FC = () => {
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `gymflow_expenses_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute('download', `gymify_expenses_${new Date().toISOString().split('T')[0]}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -109,7 +109,7 @@ export const ExpensesView: React.FC = () => {
           <div>
             <div className="text-xs text-on-surface-variant font-medium">Expenses this month</div>
             <div className="text-2xl font-bold font-headline text-on-surface font-mono mt-1.5">
-              ${monthlyExpenses.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+              ₹{monthlyExpenses.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
             </div>
           </div>
           <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
@@ -122,11 +122,11 @@ export const ExpensesView: React.FC = () => {
           <div>
             <div className="text-xs text-on-surface-variant font-medium">Revenue this month</div>
             <div className="text-2xl font-bold font-headline text-on-surface font-mono mt-1.5">
-              ${monthlyRevenue.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+              ₹{monthlyRevenue.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
             </div>
           </div>
           <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
-            <span className="material-symbols-outlined text-[20px]">attach_money</span>
+            <span className="material-symbols-outlined text-[20px]">currency_rupee</span>
           </div>
         </div>
 
@@ -135,7 +135,7 @@ export const ExpensesView: React.FC = () => {
           <div>
             <div className="text-xs text-on-surface-variant font-medium">Profit this month</div>
             <div className="text-2xl font-bold font-headline text-red-500 font-mono mt-1.5">
-              -${Math.abs(monthlyProfit).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+              -₹{Math.abs(monthlyProfit).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
             </div>
           </div>
           <div className="w-10 h-10 rounded-xl bg-red-500/10 text-red-500 flex items-center justify-center shrink-0">
@@ -187,7 +187,7 @@ export const ExpensesView: React.FC = () => {
         </div>
 
         <div className="text-xs font-mono text-on-surface-variant shrink-0">
-          {filteredExpenses.length} shown • ${totalExpenseAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+          {filteredExpenses.length} shown • ₹{totalExpenseAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
         </div>
       </div>
 
@@ -231,7 +231,7 @@ export const ExpensesView: React.FC = () => {
                       {exp.description}
                     </td>
                     <td className="py-3.5 px-4 font-mono font-bold text-on-surface">
-                      ${exp.amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                      ₹{exp.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                     </td>
                     <td className="py-3.5 px-4 text-on-surface-variant">
                       {exp.paymentMethod}
@@ -307,7 +307,7 @@ export const ExpensesView: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-medium text-on-surface mb-1">Amount ($ USD)</label>
+                  <label className="block font-medium text-on-surface mb-1">Amount (₹ INR)</label>
                   <input
                     type="number"
                     step="0.01"

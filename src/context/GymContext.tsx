@@ -28,8 +28,13 @@ import {
   Complaint,
   Announcement,
   WorkoutPlan,
-  DietPlan
+  DietPlan,
+  LandingCMSConfig,
+  BiometricLog,
+  GymifyReferral,
+  GymifyPointsHistory
 } from '../types';
+import { DEFAULT_LANDING_CMS } from '../data/defaultLandingCms';
 import {
   BRANCHES,
   INITIAL_MEMBERS,
@@ -150,20 +155,46 @@ interface GymContextType {
 
   // Members Management
   members: Member[];
-  addMember: (data: { name: string; email: string; phone: string; plan: MembershipPlan }) => Promise<void>;
+  addMember: (data: {
+    name: string;
+    email: string;
+    phone: string;
+    plan: MembershipPlan;
+    aadhaarNumber?: string;
+    aadhaarDocUrl?: string;
+    aadhaarDocName?: string;
+    emergencyContactName?: string;
+    emergencyContactPhone?: string;
+    emergencyContactRelation?: string;
+  }) => Promise<void>;
   renewMember: (id: string, newPlan?: MembershipPlan) => void;
   toggleMemberFreeze: (id: string) => void;
   deleteMember: (id: string) => Promise<void>;
 
-  // Gate & Turnstile Telemetry
+  // Gate & Turnstile Telemetry & Biometrics
   checkInLogs: CheckInLog[];
+  biometricLogs: BiometricLog[];
   liveOccupancy: number;
   maxCapacity: number;
   isTerminalLocked: boolean;
   toggleTerminalLock: () => void;
   checkInMember: (memberId: string, method?: CheckInMethod) => Promise<boolean>;
+  logBiometricAttendance: (data: {
+    personType: 'member' | 'staff';
+    personId: string;
+    personName: string;
+    photoUrl?: string;
+    confidenceScore: number;
+    capturedPhotoUrl?: string;
+    terminal?: string;
+  }) => Promise<{ success: boolean; message: string; pointsAwarded?: number }>;
   simulateScan: (customName?: string) => { name: string; plan: string; allowed: boolean };
   lastScannedMember: { name: string; plan: string; code: string; allowed: boolean; timestamp: string } | null;
+
+  // Gymify Points & Gamification
+  awardGymifyPoints: (memberId: string, points: number, reason: string, type?: GymifyPointsHistory['type']) => void;
+  addMemberReferral: (memberId: string, referral: { name: string; phone: string; notes?: string }) => void;
+  redeemGymifyReward: (memberId: string, rewardName: string, pointsCost: number) => boolean;
 
   // Scheduling (Classes & PT)
   classes: ClassSession[];
@@ -186,7 +217,31 @@ interface GymContextType {
   // HRMS & Staff
   staff: StaffMember[];
   staffFeed: StaffCheckInFeed[];
-  addStaff: (data: { name: string; role: StaffMember['role']; phone: string; shiftHours?: string }) => Promise<void>;
+  addStaff: (data: {
+    name: string;
+    role: StaffMember['role'];
+    phone: string;
+    shiftHours?: string;
+    aadhaarNumber?: string;
+    aadhaarDocUrl?: string;
+    aadhaarDocName?: string;
+    emergencyContactName?: string;
+    emergencyContactPhone?: string;
+    emergencyContactRelation?: string;
+    pastExperienceYears?: number;
+    pastWorkplace?: string;
+    specializations?: string;
+    certifications?: string;
+    academicDegree?: string;
+    academicInstitution?: string;
+    academicYear?: string;
+    certificationDocUrl?: string;
+    certificationDocName?: string;
+    academicDocUrl?: string;
+    academicDocName?: string;
+    resumeDocUrl?: string;
+    resumeDocName?: string;
+  }) => Promise<void>;
   approveStaffCheckIn: (feedId: string) => void;
   rejectStaffCheckIn: (feedId: string) => void;
 
@@ -231,6 +286,11 @@ interface GymContextType {
   dietPlans: DietPlan[];
   assignWorkoutPlan: (planId: string, memberName: string) => void;
   assignDietPlan: (dietId: string, memberName: string) => void;
+
+  // Landing Page CMS & Pricing Customization
+  landingCms: LandingCMSConfig;
+  updateLandingCms: (config: LandingCMSConfig) => void;
+  resetLandingCms: () => void;
 
   // Global Modals & Notifications
   activeModal: string | null;
@@ -354,7 +414,7 @@ export const GymProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [invoices, setInvoices] = useState<Invoice[]>(INITIAL_INVOICES);
   const [expenses, setExpenses] = useState<Expense[]>(() => {
     try {
-      const saved = localStorage.getItem('gymflow_expenses');
+      const saved = localStorage.getItem('gymify_expenses');
       return saved ? JSON.parse(saved) : INITIAL_EXPENSES;
     } catch {
       return INITIAL_EXPENSES;
@@ -369,21 +429,22 @@ export const GymProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     };
     setExpenses(prev => {
       const updated = [newExp, ...prev];
-      try { localStorage.setItem('gymflow_expenses', JSON.stringify(updated)); } catch {}
+      try { localStorage.setItem('gymify_expenses', JSON.stringify(updated)); } catch {}
       return updated;
     });
-    showToast('Expense Recorded', `Added ${newExp.ref} - ${newExp.description} ($${newExp.amount.toFixed(2)})`, 'success');
+    showToast('Expense Recorded', `Added ${newExp.ref} - ${newExp.description} (₹${newExp.amount.toFixed(2)})`, 'success');
   };
 
   const deleteExpense = (id: string) => {
     setExpenses(prev => {
       const updated = prev.filter(e => e.id !== id);
-      try { localStorage.setItem('gymflow_expenses', JSON.stringify(updated)); } catch {}
+      try { localStorage.setItem('gymify_expenses', JSON.stringify(updated)); } catch {}
       return updated;
     });
     showToast('Expense Removed', 'Record has been removed from ledger.', 'info');
   };
   const [checkInLogs, setCheckInLogs] = useState<CheckInLog[]>(INITIAL_CHECKINS);
+  const [biometricLogs, setBiometricLogs] = useState<BiometricLog[]>([]);
   const [leads, setLeads] = useState<Lead[]>(INITIAL_LEADS);
   const [staff, setStaff] = useState<StaffMember[]>(INITIAL_STAFF);
 
@@ -525,6 +586,33 @@ export const GymProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       return INITIAL_GOOGLE_SHEETS;
     }
   });
+
+  // Landing Page CMS & Pricing Customization State
+  const [landingCms, setLandingCms] = useState<LandingCMSConfig>(() => {
+    try {
+      const saved = localStorage.getItem('gymify_landing_cms');
+      return saved ? JSON.parse(saved) : DEFAULT_LANDING_CMS;
+    } catch {
+      return DEFAULT_LANDING_CMS;
+    }
+  });
+
+  const updateLandingCms = (config: LandingCMSConfig) => {
+    const updated = { ...config, lastUpdated: new Date().toISOString() };
+    setLandingCms(updated);
+    try {
+      localStorage.setItem('gymify_landing_cms', JSON.stringify(updated));
+    } catch {}
+    showToast('Landing CMS Updated', 'Landing page content & pricing plans deployed successfully.', 'success');
+  };
+
+  const resetLandingCms = () => {
+    setLandingCms(DEFAULT_LANDING_CMS);
+    try {
+      localStorage.setItem('gymify_landing_cms', JSON.stringify(DEFAULT_LANDING_CMS));
+    } catch {}
+    showToast('Landing CMS Reset', 'Restored original default landing page copy & pricing tiers.', 'info');
+  };
 
   // Tenant Admin: RBAC & Function Selection State
   const [tenantRoles, setTenantRoles] = useState<TenantRole[]>(DEFAULT_TENANT_ROLES);
@@ -1129,7 +1217,18 @@ export const GymProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   };
 
   // Member CRUD with API integration
-  const addMember = async (data: { name: string; email: string; phone: string; plan: MembershipPlan }) => {
+  const addMember = async (data: {
+    name: string;
+    email: string;
+    phone: string;
+    plan: MembershipPlan;
+    aadhaarNumber?: string;
+    aadhaarDocUrl?: string;
+    aadhaarDocName?: string;
+    emergencyContactName?: string;
+    emergencyContactPhone?: string;
+    emergencyContactRelation?: string;
+  }) => {
     const newCode = `#MEM-${Math.floor(1000 + Math.random() * 9000)}`;
     const newMember: Member = {
       id: `m-${Date.now()}`,
@@ -1143,7 +1242,16 @@ export const GymProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       joinedDate: 'Today',
       expiryDate: 'Oct 2027',
       lastVisit: 'Just registered',
-      totalCheckIns: 0
+      totalCheckIns: 0,
+      aadhaarNumber: data.aadhaarNumber,
+      aadhaarDocUrl: data.aadhaarDocUrl,
+      aadhaarDocName: data.aadhaarDocName,
+      emergencyContactName: data.emergencyContactName,
+      emergencyContactPhone: data.emergencyContactPhone,
+      emergencyContactRelation: data.emergencyContactRelation,
+      emergencyContact: data.emergencyContactPhone
+        ? `${data.emergencyContactPhone} (${data.emergencyContactRelation || 'Emergency'})`
+        : undefined,
     };
 
     if (!isDemoMode && apiClient.getToken()) {
@@ -1254,10 +1362,31 @@ export const GymProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
     setCheckInLogs(prev => [newLog, ...prev]);
     setLiveOccupancy(prev => Math.min(prev + 1, maxCapacity));
+
+    // Award +20 Gymify Points for Facility Attendance Check-in
+    const attendancePoints = 20;
+    const currentPts = member.gymifyPoints ?? 100;
+    const newTotalPts = currentPts + attendancePoints;
+    const newTier = calculateGymifyTier(newTotalPts);
+    const newPointEntry: GymifyPointsHistory = {
+      id: `ph-${Date.now()}`,
+      type: 'attendance',
+      points: attendancePoints,
+      description: `${method} Attendance Check-in`,
+      timestamp: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })
+    };
+
     setMembers(prev =>
       prev.map(m =>
         m.id === memberId
-          ? { ...m, lastVisit: 'Just now', totalCheckIns: m.totalCheckIns + 1 }
+          ? {
+              ...m,
+              lastVisit: 'Just now',
+              totalCheckIns: m.totalCheckIns + 1,
+              gymifyPoints: newTotalPts,
+              gymifyTier: newTier,
+              pointsHistory: [newPointEntry, ...(m.pointsHistory || [])]
+            }
           : m
       )
     );
@@ -1267,11 +1396,288 @@ export const GymProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       plan: member.plan.toUpperCase(),
       code: member.memberCode,
       allowed: true,
-      timestamp: 'Checked in just now'
+      timestamp: 'Checked in just now (+20 Pts)'
     });
 
-    showToast('Check-in Verified', `${member.name} entered the facility. Turnstile unlocked.`, 'success');
+    showToast('Check-in Verified', `${member.name} entered the facility. Turnstile unlocked (+20 Gymify Points)!`, 'success');
     return true;
+  };
+
+  const calculateGymifyTier = (points: number): 'Bronze' | 'Silver' | 'Gold' | 'Platinum' | 'Diamond' => {
+    if (points >= 3000) return 'Diamond';
+    if (points >= 1500) return 'Platinum';
+    if (points >= 750) return 'Gold';
+    if (points >= 250) return 'Silver';
+    return 'Bronze';
+  };
+
+  const awardGymifyPoints = (
+    memberId: string,
+    points: number,
+    reason: string,
+    type: GymifyPointsHistory['type'] = 'attendance'
+  ) => {
+    setMembers(prev =>
+      prev.map(m => {
+        if (m.id !== memberId) return m;
+        const currentPoints = m.gymifyPoints ?? 100;
+        const newTotal = Math.max(0, currentPoints + points);
+        const newTier = calculateGymifyTier(newTotal);
+        const newHistoryItem: GymifyPointsHistory = {
+          id: `ph-${Date.now()}`,
+          type,
+          points,
+          description: reason,
+          timestamp: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })
+        };
+        const updatedHistory = [newHistoryItem, ...(m.pointsHistory || [])];
+        return {
+          ...m,
+          gymifyPoints: newTotal,
+          gymifyTier: newTier,
+          pointsHistory: updatedHistory
+        };
+      })
+    );
+    showToast('Gymify Points Awarded', `+${points} pts to ${members.find(m => m.id === memberId)?.name || 'Member'}: ${reason}`, 'success');
+  };
+
+  const addMemberReferral = (
+    memberId: string,
+    referral: { name: string; phone: string; notes?: string }
+  ) => {
+    const pointsToAdd = 250;
+    const newRef: GymifyReferral = {
+      id: `ref-${Date.now()}`,
+      referredName: referral.name,
+      referredPhone: referral.phone,
+      date: new Date().toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' }),
+      status: 'Joined (Awarded)',
+      pointsAwarded: pointsToAdd
+    };
+    const newHistoryItem: GymifyPointsHistory = {
+      id: `ph-${Date.now()}`,
+      type: 'referral',
+      points: pointsToAdd,
+      description: `Referral Joined: ${referral.name} (${referral.phone})`,
+      timestamp: new Date().toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })
+    };
+
+    setMembers(prev =>
+      prev.map(m => {
+        if (m.id !== memberId) return m;
+        const currentPoints = m.gymifyPoints ?? 100;
+        const newTotal = currentPoints + pointsToAdd;
+        const newTier = calculateGymifyTier(newTotal);
+        return {
+          ...m,
+          gymifyPoints: newTotal,
+          gymifyTier: newTier,
+          referralsCount: (m.referralsCount || 0) + 1,
+          referralsList: [newRef, ...(m.referralsList || [])],
+          pointsHistory: [newHistoryItem, ...(m.pointsHistory || [])]
+        };
+      })
+    );
+
+    showToast('Referral Bonus Unlocked!', `+250 Gymify Points awarded for inviting ${referral.name}!`, 'success');
+  };
+
+  const redeemGymifyReward = (memberId: string, rewardName: string, pointsCost: number): boolean => {
+    const member = members.find(m => m.id === memberId);
+    if (!member) return false;
+    const currentPoints = member.gymifyPoints ?? 0;
+    if (currentPoints < pointsCost) {
+      showToast('Insufficient Points', `Need ${pointsCost} pts to redeem ${rewardName} (current: ${currentPoints} pts).`, 'warning');
+      return false;
+    }
+
+    const newTotal = currentPoints - pointsCost;
+    const newTier = calculateGymifyTier(newTotal);
+    const newHistoryItem: GymifyPointsHistory = {
+      id: `ph-${Date.now()}`,
+      type: 'redemption',
+      points: -pointsCost,
+      description: `Redeemed Reward: ${rewardName}`,
+      timestamp: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })
+    };
+
+    setMembers(prev =>
+      prev.map(m =>
+        m.id === memberId
+          ? {
+              ...m,
+              gymifyPoints: newTotal,
+              gymifyTier: newTier,
+              pointsHistory: [newHistoryItem, ...(m.pointsHistory || [])]
+            }
+          : m
+      )
+    );
+
+    showToast('Reward Claimed!', `Redeemed ${rewardName} for ${pointsCost} Gymify Points. Voucher generated.`, 'success');
+    return true;
+  };
+
+  const logBiometricAttendance = async (data: {
+    personType: 'member' | 'staff';
+    personId: string;
+    personName: string;
+    photoUrl?: string;
+    confidenceScore: number;
+    capturedPhotoUrl?: string;
+    terminal?: string;
+  }): Promise<{ success: boolean; message: string; pointsAwarded?: number }> => {
+    const timestampStr = new Date().toISOString();
+    const timeFormatted = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+    const terminalName = data.terminal || 'Biometric Face-ID Gate #01';
+
+    if (data.personType === 'member') {
+      const member = members.find(m => m.id === data.personId);
+      if (!member) {
+        return { success: false, message: 'Member profile not found in directory.' };
+      }
+
+      if (member.status === 'expired' || member.status === 'cancelled') {
+        const deniedLog: CheckInLog = {
+          id: `ci-bio-${Date.now()}`,
+          memberId: member.id,
+          memberName: member.name,
+          memberCode: member.memberCode,
+          plan: member.plan,
+          timestamp: timestampStr,
+          timeFormatted: `${timeFormatted} (Biometric)`,
+          method: 'Biometric Camera',
+          status: 'Access Denied',
+          terminal: terminalName
+        };
+        setCheckInLogs(prev => [deniedLog, ...prev]);
+        showToast('Access Denied', `${member.name} matched (${data.confidenceScore.toFixed(1)}%), but membership is ${member.status}.`, 'error');
+        return { success: false, message: `Membership plan is ${member.status}. Renewal required.` };
+      }
+
+      // Check-in allowed
+      const newCheckIn: CheckInLog = {
+        id: `ci-bio-${Date.now()}`,
+        memberId: member.id,
+        memberName: member.name,
+        memberCode: member.memberCode,
+        plan: member.plan,
+        timestamp: timestampStr,
+        timeFormatted: `${timeFormatted} (Face-ID)`,
+        method: 'Biometric Camera',
+        status: 'Allowed',
+        terminal: terminalName
+      };
+
+      const bioLog: BiometricLog = {
+        id: `bio-${Date.now()}`,
+        personType: 'member',
+        personId: member.id,
+        personName: member.name,
+        roleOrPlan: member.plan,
+        timestamp: timestampStr,
+        timeFormatted,
+        verificationMethod: 'Camera Biometrics (Face Match)',
+        confidenceScore: data.confidenceScore,
+        status: 'Verified Match',
+        capturedPhotoUrl: data.capturedPhotoUrl || member.photoUrl,
+        terminal: terminalName,
+        pointsAwarded: 20
+      };
+
+      setCheckInLogs(prev => [newCheckIn, ...prev]);
+      setBiometricLogs(prev => [bioLog, ...prev.slice(0, 49)]);
+      setLiveOccupancy(prev => Math.min(prev + 1, maxCapacity));
+
+      // Award +20 points
+      const currentPts = member.gymifyPoints ?? 100;
+      const updatedPts = currentPts + 20;
+      const updatedTier = calculateGymifyTier(updatedPts);
+      const pointsItem: GymifyPointsHistory = {
+        id: `ph-bio-${Date.now()}`,
+        type: 'attendance',
+        points: 20,
+        description: 'Biometric Face-ID Attendance Check-in',
+        timestamp: timeFormatted
+      };
+
+      setMembers(prev =>
+        prev.map(m =>
+          m.id === member.id
+            ? {
+                ...m,
+                lastVisit: `Today (${timeFormatted} via Face-ID)`,
+                totalCheckIns: m.totalCheckIns + 1,
+                gymifyPoints: updatedPts,
+                gymifyTier: updatedTier,
+                pointsHistory: [pointsItem, ...(m.pointsHistory || [])]
+              }
+            : m
+        )
+      );
+
+      setLastScannedMember({
+        name: member.name,
+        plan: `${member.plan.toUpperCase()} • FACE VERIFIED (${data.confidenceScore.toFixed(1)}%)`,
+        code: member.memberCode,
+        allowed: true,
+        timestamp: `Biometric Camera: ${timeFormatted}`
+      });
+
+      showToast('Biometric Access Verified', `✓ ${member.name} authenticated (${data.confidenceScore.toFixed(1)}% match). +20 Gymify Points earned!`, 'success');
+      return { success: true, message: `Access granted for ${member.name}`, pointsAwarded: 20 };
+    } else {
+      // Staff / Trainer presence verification
+      const staffMember = staff.find(s => s.id === data.personId);
+      if (!staffMember) {
+        return { success: false, message: 'Staff profile not found.' };
+      }
+
+      const bioLog: BiometricLog = {
+        id: `bio-staff-${Date.now()}`,
+        personType: 'staff',
+        personId: staffMember.id,
+        personName: staffMember.name,
+        roleOrPlan: staffMember.role,
+        timestamp: timestampStr,
+        timeFormatted,
+        verificationMethod: 'Camera Biometrics (Face Match)',
+        confidenceScore: data.confidenceScore,
+        status: 'Verified Match',
+        capturedPhotoUrl: data.capturedPhotoUrl || staffMember.photoUrl,
+        terminal: terminalName
+      };
+
+      // Also create an attendance check-in log so AttendanceView displays staff presence too!
+      const staffAttendanceLog: CheckInLog = {
+        id: `ci-staff-${Date.now()}`,
+        memberId: staffMember.id,
+        memberName: `${staffMember.name} (Staff/Trainer)`,
+        memberCode: staffMember.staffCode,
+        plan: 'Staff On-Duty' as any,
+        timestamp: timestampStr,
+        timeFormatted: `${timeFormatted} (Duty Login)`,
+        method: 'Biometric Camera',
+        status: 'Allowed',
+        terminal: terminalName
+      };
+
+      setCheckInLogs(prev => [staffAttendanceLog, ...prev]);
+      setBiometricLogs(prev => [bioLog, ...prev.slice(0, 49)]);
+
+      // Mark staff onShift and geofenceStatus Verified Inside
+      setStaff(prev =>
+        prev.map(s =>
+          s.id === staffMember.id
+            ? { ...s, onShift: true, geofenceStatus: 'Verified Inside' }
+            : s
+        )
+      );
+
+      showToast('Staff Presence Verified', `✓ ${staffMember.name} (${staffMember.role}) verified on duty via device camera. Shift active!`, 'success');
+      return { success: true, message: `Staff presence logged for ${staffMember.name}` };
+    }
   };
 
   const simulateScan = (customName?: string) => {
@@ -1659,7 +2065,31 @@ export const GymProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   };
 
   // Staff
-  const addStaff = async (data: { name: string; role: StaffMember['role']; phone: string; shiftHours?: string }) => {
+  const addStaff = async (data: {
+    name: string;
+    role: StaffMember['role'];
+    phone: string;
+    shiftHours?: string;
+    aadhaarNumber?: string;
+    aadhaarDocUrl?: string;
+    aadhaarDocName?: string;
+    emergencyContactName?: string;
+    emergencyContactPhone?: string;
+    emergencyContactRelation?: string;
+    pastExperienceYears?: number;
+    pastWorkplace?: string;
+    specializations?: string;
+    certifications?: string;
+    academicDegree?: string;
+    academicInstitution?: string;
+    academicYear?: string;
+    certificationDocUrl?: string;
+    certificationDocName?: string;
+    academicDocUrl?: string;
+    academicDocName?: string;
+    resumeDocUrl?: string;
+    resumeDocName?: string;
+  }) => {
     const newStaff: StaffMember = {
       id: `s-${Date.now()}`,
       staffCode: `#GYM-${Math.floor(1000 + Math.random() * 9000)}`,
@@ -1671,14 +2101,33 @@ export const GymProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       shiftHours: data.shiftHours || '08:00 - 17:00',
       shiftType: 'Full Day',
       geofenceStatus: 'Verified Inside',
-      onShift: true
+      onShift: true,
+      aadhaarNumber: data.aadhaarNumber,
+      aadhaarDocUrl: data.aadhaarDocUrl,
+      aadhaarDocName: data.aadhaarDocName,
+      emergencyContactName: data.emergencyContactName,
+      emergencyContactPhone: data.emergencyContactPhone,
+      emergencyContactRelation: data.emergencyContactRelation,
+      pastExperienceYears: data.pastExperienceYears,
+      pastWorkplace: data.pastWorkplace,
+      specializations: data.specializations,
+      certifications: data.certifications,
+      academicDegree: data.academicDegree,
+      academicInstitution: data.academicInstitution,
+      academicYear: data.academicYear,
+      certificationDocUrl: data.certificationDocUrl,
+      certificationDocName: data.certificationDocName,
+      academicDocUrl: data.academicDocUrl,
+      academicDocName: data.academicDocName,
+      resumeDocUrl: data.resumeDocUrl,
+      resumeDocName: data.resumeDocName,
     };
 
     if (!isDemoMode && apiClient.getToken()) {
       try {
         const res = await apiClient.post('/staff', {
           name: data.name,
-          email: `${data.name.toLowerCase().replace(/\s+/g, '.')}@gymos.io`,
+          email: `${data.name.toLowerCase().replace(/\s+/g, '.')}@gymify.io`,
           phone: data.phone,
           role: data.role,
           shift: data.shiftHours,
@@ -1692,7 +2141,7 @@ export const GymProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
 
     setStaff(prev => [newStaff, ...prev]);
-    showToast('Staff Added', `${newStaff.name} added to staff directory.`, 'success');
+    showToast('Staff Registered', `${newStaff.name} (${newStaff.role}) added with verified credentials.`, 'success');
   };
 
   const approveStaffCheckIn = (feedId: string) => {
@@ -1838,11 +2287,16 @@ export const GymProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         toggleMemberFreeze,
         deleteMember,
         checkInLogs,
+        biometricLogs,
         liveOccupancy,
         maxCapacity,
         isTerminalLocked,
         toggleTerminalLock,
         checkInMember,
+        logBiometricAttendance,
+        awardGymifyPoints,
+        addMemberReferral,
+        redeemGymifyReward,
         simulateScan,
         lastScannedMember,
         classes,
@@ -1881,6 +2335,9 @@ export const GymProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         dietPlans,
         assignWorkoutPlan,
         assignDietPlan,
+        landingCms,
+        updateLandingCms,
+        resetLandingCms,
         activeModal,
         modalPayload,
         openModal,

@@ -245,7 +245,7 @@ export const DashboardOverview: React.FC = () => {
           </button>
 
           <button
-            className="flex items-center gap-2 bg-primary text-on-primary px-4 py-2.5 rounded-xl font-semibold text-sm hover:opacity-90 transition-all shadow-md shadow-primary/20"
+            className="flex items-center gap-2 bg-primary text-on-primary px-4 py-2.5 rounded-xl font-semibold text-sm hover:opacity-90 transition-all shadow-md shadow-primary/20 animate-cinematic-pulse"
             onClick={() => openModal('register-member')}
           >
             <span className="material-symbols-outlined text-[18px]">add</span>
@@ -357,11 +357,11 @@ export const DashboardOverview: React.FC = () => {
           <div className="flex items-center justify-between">
             <span className="text-xs text-on-surface-variant font-medium">Monthly Revenue</span>
             <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
-              <span className="material-symbols-outlined text-[18px]">attach_money</span>
+              <span className="material-symbols-outlined text-[18px]">currency_rupee</span>
             </div>
           </div>
           <div className="mt-3">
-            <div className="text-2xl sm:text-3xl font-bold font-headline text-on-surface font-mono">$456.00</div>
+            <div className="text-2xl sm:text-3xl font-bold font-headline text-on-surface font-mono">₹456.00</div>
             <div className="text-[11px] text-red-500 font-mono mt-1">▼ 19% vs last month</div>
           </div>
         </div>
@@ -378,7 +378,7 @@ export const DashboardOverview: React.FC = () => {
             </div>
           </div>
           <div className="mt-3">
-            <div className="text-2xl sm:text-3xl font-bold font-headline text-on-surface font-mono">$6,494.00</div>
+            <div className="text-2xl sm:text-3xl font-bold font-headline text-on-surface font-mono">₹6,494.00</div>
             <div className="text-[11px] text-on-surface-variant mt-1">Jul 2026</div>
           </div>
         </div>
@@ -395,7 +395,7 @@ export const DashboardOverview: React.FC = () => {
             </div>
           </div>
           <div className="mt-3">
-            <div className="text-2xl sm:text-3xl font-bold font-headline text-red-500 font-mono">-$6,038.00</div>
+            <div className="text-2xl sm:text-3xl font-bold font-headline text-red-500 font-mono">-₹6,038.00</div>
             <div className="text-[11px] text-on-surface-variant mt-1">revenue - expenses</div>
           </div>
         </div>

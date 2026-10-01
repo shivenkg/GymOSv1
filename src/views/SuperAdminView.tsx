@@ -3,6 +3,7 @@ import { useGym } from '../context/GymContext';
 import { SaaSPackage, SaaSLicense, OperationStatus } from '../types';
 import { TenantDatabaseManager } from '../components/TenantDatabaseManager';
 import { GoogleSheetsManager } from '../components/GoogleSheetsManager';
+import { LandingCmsManager } from '../components/LandingCmsManager';
 
 export const SuperAdminView: React.FC = () => {
   const {
@@ -20,7 +21,7 @@ export const SuperAdminView: React.FC = () => {
     showToast,
   } = useGym();
 
-  const [activeTab, setActiveTab] = useState<'packages' | 'generator' | 'tenants' | 'telemetry' | 'databases' | 'google-sheets'>('packages');
+  const [activeTab, setActiveTab] = useState<'packages' | 'generator' | 'landing-cms' | 'tenants' | 'telemetry' | 'databases' | 'google-sheets'>('packages');
 
   // Package Customizer State
   const [customMembers, setCustomMembers] = useState<number>(1500);
@@ -377,6 +378,18 @@ export const SuperAdminView: React.FC = () => {
         </button>
 
         <button
+          onClick={() => setActiveTab('landing-cms')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all shrink-0 ${
+            activeTab === 'landing-cms'
+              ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/20'
+              : 'bg-surface-container text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high'
+          }`}
+        >
+          <span className="material-symbols-outlined text-[18px]">web</span>
+          <span>3. Landing Page CMS &amp; Pricing</span>
+        </button>
+
+        <button
           onClick={() => setActiveTab('tenants')}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all shrink-0 ${
             activeTab === 'tenants'
@@ -385,7 +398,7 @@ export const SuperAdminView: React.FC = () => {
           }`}
         >
           <span className="material-symbols-outlined text-[18px]">corporate_fare</span>
-          <span>3. Tenant License Registry ({saasLicenses.length})</span>
+          <span>4. Tenant License Registry ({saasLicenses.length})</span>
         </button>
 
         <button
@@ -1914,6 +1927,13 @@ export const SuperAdminView: React.FC = () => {
       {activeTab === 'google-sheets' && (
         <div className="animate-in fade-in duration-200">
           <GoogleSheetsManager />
+        </div>
+      )}
+
+      {/* TAB 7: LANDING PAGE CMS & PRICING */}
+      {activeTab === 'landing-cms' && (
+        <div className="animate-in fade-in duration-200">
+          <LandingCmsManager />
         </div>
       )}
 

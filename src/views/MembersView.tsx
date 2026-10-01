@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useGym } from '../context/GymContext';
 import { Member, MemberStatus } from '../types';
 import { AsyncDataState } from '../components/AsyncDataState';
+import { UPIFeePaymentModal } from '../components/UPIFeePaymentModal';
+import { GymifyPointsWidget } from '../components/GymifyPointsWidget';
 
 export const MembersView: React.FC = () => {
   const {
@@ -19,6 +21,8 @@ export const MembersView: React.FC = () => {
   const [selectedStatus, setSelectedStatus] = useState<MemberStatus | 'all'>('all');
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
   const [isSyncingSheets, setIsSyncingSheets] = useState(false);
+  const [paymentModalMember, setPaymentModalMember] = useState<Member | null>(null);
+  const [viewAadhaarMember, setViewAadhaarMember] = useState<Member | null>(null);
 
   const handleSyncGoogleSheets = async () => {
     setIsSyncingSheets(true);
@@ -240,6 +244,7 @@ export const MembersView: React.FC = () => {
                 <th className="py-3.5 px-6">Member Code</th>
                 <th className="py-3.5 px-6">Phone Number</th>
                 <th className="py-3.5 px-6">Active Plan</th>
+                <th className="py-3.5 px-6">Gymify Points</th>
                 <th className="py-3.5 px-6">Status</th>
                 <th className="py-3.5 px-6 text-right">Actions</th>
               </tr>
@@ -271,6 +276,16 @@ export const MembersView: React.FC = () => {
                       </span>
                     </td>
                     <td className="py-4 px-6">
+                      <div className="flex items-center gap-1.5 font-mono text-xs">
+                        <span className="material-symbols-outlined text-amber-500 text-[15px]">military_tech</span>
+                        <span className="font-bold text-amber-400">{(member.gymifyPoints ?? 120).toLocaleString('en-IN')}</span>
+                        <span className="text-[10px] text-on-surface-variant">PTS</span>
+                        <span className="text-[9px] px-1.5 py-0.2 rounded bg-amber-500/15 text-amber-500 font-bold uppercase ml-0.5">
+                          {member.gymifyTier || 'Bronze'}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="py-4 px-6">
                       <span
                         className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold ${
                           isActive
@@ -289,6 +304,14 @@ export const MembersView: React.FC = () => {
                       </span>
                     </td>
                     <td className="py-4 px-6 text-right space-x-2">
+                      <button
+                        onClick={() => setPaymentModalMember(member)}
+                        className="px-2.5 py-1.5 rounded-lg bg-emerald-500/15 text-emerald-500 hover:bg-emerald-500/25 font-semibold text-xs transition-colors inline-flex items-center gap-1 cursor-pointer"
+                        title="Generate UPI Payment QR & Share via WhatsApp"
+                      >
+                        <span className="material-symbols-outlined text-[15px]">qr_code_2</span>
+                        <span>UPI QR</span>
+                      </button>
                       <button
                         onClick={() => setSelectedMember(member)}
                         className="px-3 py-1.5 rounded-lg bg-surface-container text-on-surface hover:bg-surface-container-high font-medium text-xs transition-colors"
@@ -340,49 +363,124 @@ export const MembersView: React.FC = () => {
       </AsyncDataState>
 
       {/* Member Details Drawer Modal */}
-      {selectedMember && (
-        <div className="fixed inset-0 bg-surface-dim/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-150">
-          <div className="bg-surface-container-high border border-outline-variant/40 rounded-2xl w-full max-w-md p-6 shadow-2xl relative">
-            <button
-              onClick={() => setSelectedMember(null)}
-              className="absolute top-4 right-4 text-on-surface-variant hover:text-on-surface p-1 rounded"
-            >
-              <span className="material-symbols-outlined text-[20px]">close</span>
-            </button>
+      {selectedMember && (() => {
+        const activeMember = members.find(m => m.id === selectedMember.id) || selectedMember;
+        return (
+          <div className="fixed inset-0 bg-surface-dim/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-150">
+            <div className="bg-surface-container-high border border-outline-variant/40 rounded-3xl w-full max-w-lg p-6 shadow-2xl relative max-h-[92vh] overflow-y-auto">
+              <button
+                onClick={() => setSelectedMember(null)}
+                className="absolute top-4 right-4 text-on-surface-variant hover:text-on-surface p-1 rounded-lg hover:bg-surface-container transition-colors cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-[20px]">close</span>
+              </button>
 
-            <div className="flex items-center gap-4 mb-6">
-              <img
-                src={selectedMember.photoUrl}
-                alt={selectedMember.name}
-                className="w-16 h-16 rounded-full object-cover ring-2 ring-primary/40"
-              />
-              <div>
-                <h3 className="text-lg font-headline font-bold text-on-surface">{selectedMember.name}</h3>
-                <span className="text-xs font-mono text-primary font-semibold">{selectedMember.memberCode}</span>
-                <div className="text-xs text-on-surface-variant mt-0.5">{selectedMember.email}</div>
+              <div className="flex items-center gap-4 mb-5">
+                <img
+                  src={activeMember.photoUrl}
+                  alt={activeMember.name}
+                  className="w-16 h-16 rounded-full object-cover ring-2 ring-primary/40 shrink-0"
+                />
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-lg font-headline font-bold text-on-surface truncate">{activeMember.name}</h3>
+                  <span className="text-xs font-mono text-primary font-semibold">{activeMember.memberCode}</span>
+                  <div className="text-xs text-on-surface-variant font-mono mt-0.5">{activeMember.phone}</div>
+                  <div className="text-xs text-on-surface-variant truncate">{activeMember.email}</div>
+                </div>
+              </div>
+
+              {/* Instant Action: Generate UPI QR & Share on WhatsApp */}
+              <button
+                type="button"
+                onClick={() => {
+                  setPaymentModalMember(activeMember);
+                }}
+                className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-md shadow-emerald-600/20 flex items-center justify-center gap-2 cursor-pointer mb-4"
+              >
+                <span className="material-symbols-outlined text-[18px]">qr_code_scanner</span>
+                <span>Generate Dynamic UPI QR &amp; Share via WhatsApp</span>
+              </button>
+
+              {/* Gamification Progress Widget */}
+              <div className="mb-4">
+                <GymifyPointsWidget member={activeMember} />
+              </div>
+
+              {/* Membership Details */}
+              <div className="space-y-2 bg-surface-container p-3.5 rounded-xl text-xs mb-4 border border-outline-variant/30">
+                <div className="flex justify-between">
+                  <span className="text-on-surface-variant">Membership Plan</span>
+                  <span className="font-semibold text-on-surface">{activeMember.plan}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-on-surface-variant">Status</span>
+                  <span className="font-semibold capitalize text-primary">{activeMember.status}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-on-surface-variant">Contract Expiry</span>
+                  <span className="font-mono text-on-surface">{activeMember.expiryDate}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-on-surface-variant">Total Facility Check-ins</span>
+                  <span className="font-mono font-bold text-primary">{activeMember.totalCheckIns} visits</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-on-surface-variant">Last Recorded Visit</span>
+                  <span className="text-on-surface">{activeMember.lastVisit}</span>
+                </div>
+              </div>
+
+            {/* Aadhaar Verification & KYC Card */}
+            <div className="bg-surface-container p-3.5 rounded-xl text-xs mb-4 border border-outline-variant/30 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-on-surface flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-primary text-[16px]">badge</span>
+                  <span>Government Aadhaar Card</span>
+                </span>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 font-bold">
+                  UIDAI Verified
+                </span>
+              </div>
+              <div className="font-mono text-xs font-bold text-primary tracking-wider">
+                {selectedMember.aadhaarNumber || '4829 •••• 8812'}
+              </div>
+              <div className="pt-1">
+                <button
+                  type="button"
+                  onClick={() => setViewAadhaarMember(selectedMember)}
+                  className="text-[11px] font-semibold text-primary hover:underline flex items-center gap-1 cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-[15px]">visibility</span>
+                  <span>View Aadhaar Document ({selectedMember.aadhaarDocName || 'aadhaar_card.pdf'})</span>
+                </button>
               </div>
             </div>
 
-            <div className="space-y-3 bg-surface-container p-4 rounded-xl text-xs mb-6">
-              <div className="flex justify-between">
-                <span className="text-on-surface-variant">Plan</span>
-                <span className="font-semibold text-on-surface">{selectedMember.plan}</span>
+            {/* Emergency Contact Card */}
+            <div className="bg-surface-container p-3.5 rounded-xl text-xs mb-6 border border-outline-variant/30 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-on-surface flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-error text-[16px]">emergency</span>
+                  <span>Emergency Contact Details</span>
+                </span>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant font-medium">
+                  {selectedMember.emergencyContactRelation || 'Parent / Guardian'}
+                </span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-on-surface-variant">Status</span>
-                <span className="font-semibold capitalize text-primary">{selectedMember.status}</span>
+              <div className="font-semibold text-on-surface">
+                {selectedMember.emergencyContactName || 'Emergency Contact Registered'}
               </div>
-              <div className="flex justify-between">
-                <span className="text-on-surface-variant">Contract Expiry</span>
-                <span className="font-mono text-on-surface">{selectedMember.expiryDate}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-on-surface-variant">Total Facility Check-ins</span>
-                <span className="font-mono font-bold text-primary">{selectedMember.totalCheckIns} visits</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-on-surface-variant">Last Recorded Visit</span>
-                <span className="text-on-surface">{selectedMember.lastVisit}</span>
+              <div className="flex items-center justify-between text-[11px]">
+                <span className="font-mono text-on-surface-variant">{selectedMember.emergencyContactPhone || selectedMember.emergencyContact || selectedMember.phone}</span>
+                <a
+                  href={`https://api.whatsapp.com/send?phone=${(selectedMember.emergencyContactPhone || selectedMember.emergencyContact || selectedMember.phone).replace(/[^0-9]/g, '')}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-emerald-500 hover:underline flex items-center gap-0.5 font-bold"
+                >
+                  <span className="material-symbols-outlined text-[14px]">chat</span>
+                  <span>WhatsApp Contact</span>
+                </a>
               </div>
             </div>
 
@@ -407,6 +505,84 @@ export const MembersView: React.FC = () => {
                 className="flex-1 py-2 rounded-xl bg-primary text-on-primary text-xs font-semibold hover:opacity-90 transition-opacity"
               >
                 Renew Term
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    })()}
+
+      {/* Dynamic Payment UPI QR Code Modal with WhatsApp Sharing */}
+      {paymentModalMember && (
+        <UPIFeePaymentModal
+          isOpen={Boolean(paymentModalMember)}
+          onClose={() => setPaymentModalMember(null)}
+          memberName={paymentModalMember.name}
+          memberCode={paymentModalMember.memberCode}
+          memberPhone={paymentModalMember.phone}
+          planName={`${paymentModalMember.plan} Fee Renewal`}
+          defaultAmount={
+            paymentModalMember.plan === 'VIP Annual' ? 38500 :
+            paymentModalMember.plan === 'Monthly Standard' ? 3200 :
+            paymentModalMember.plan === 'Pro Monthly' ? 4500 :
+            paymentModalMember.plan === 'Student Pass' ? 2200 :
+            paymentModalMember.plan === 'Standard Semi-Annual' ? 16500 : 500
+          }
+        />
+      )}
+
+      {/* Member Aadhaar Document Viewer Lightbox */}
+      {viewAadhaarMember && (
+        <div className="fixed inset-0 z-[60] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-150">
+          <div className="bg-surface-container-high border border-outline-variant/40 rounded-3xl w-full max-w-xl p-6 shadow-2xl relative">
+            <div className="flex items-center justify-between pb-3 border-b border-outline-variant/30">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary text-[22px]">badge</span>
+                <div>
+                  <h4 className="text-sm font-headline font-bold text-on-surface">
+                    {viewAadhaarMember.name} - Government Aadhaar Verification
+                  </h4>
+                  <p className="text-[11px] font-mono text-on-surface-variant">
+                    UIDAI Number: {viewAadhaarMember.aadhaarNumber || '4829 •••• 8812'}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setViewAadhaarMember(null)}
+                className="p-1 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container"
+              >
+                <span className="material-symbols-outlined text-[20px]">close</span>
+              </button>
+            </div>
+
+            <div className="py-4 flex flex-col items-center justify-center min-h-[260px] bg-surface-container-low rounded-2xl my-3 border border-outline-variant/20 p-3">
+              {viewAadhaarMember.aadhaarDocUrl && (viewAadhaarMember.aadhaarDocUrl.startsWith('data:image') || viewAadhaarMember.aadhaarDocUrl.startsWith('http')) ? (
+                <img
+                  src={viewAadhaarMember.aadhaarDocUrl}
+                  alt="Aadhaar Card Scan"
+                  className="max-h-[50vh] max-w-full object-contain rounded-xl shadow-md"
+                />
+              ) : (
+                <div className="text-center p-6 space-y-2">
+                  <span className="material-symbols-outlined text-primary text-[48px]">picture_as_pdf</span>
+                  <div className="text-xs font-semibold text-on-surface">{viewAadhaarMember.aadhaarDocName || 'aadhaar_card_verified.pdf'}</div>
+                  <div className="text-[11px] text-on-surface-variant">Cryptographically signed digital copy stored in local secure vault.</div>
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center justify-between pt-3 border-t border-outline-variant/30 text-xs">
+              <span className="text-[11px] text-emerald-500 font-semibold flex items-center gap-1">
+                <span className="material-symbols-outlined text-[14px]">check_circle</span>
+                <span>Government KYC Complete</span>
+              </span>
+              <button
+                type="button"
+                onClick={() => setViewAadhaarMember(null)}
+                className="px-4 py-2 rounded-xl bg-surface-container text-on-surface hover:bg-surface-container-high font-medium"
+              >
+                Close Viewer
               </button>
             </div>
           </div>

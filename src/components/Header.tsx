@@ -12,8 +12,6 @@ export const Header: React.FC = () => {
     branches,
     openModal,
     showToast,
-    isTerminalLocked,
-    simulateScan,
     currentUser,
     logout,
     setActiveScreen,
@@ -181,23 +179,10 @@ export const Header: React.FC = () => {
             ))}
           </div>
         )}
-
-        {/* Quick Quick-Scan trigger directly from header */}
-        <button
-          onClick={() => {
-            simulateScan();
-          }}
-          disabled={isTerminalLocked}
-          title="Quick simulate member check-in scan"
-          className="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-surface-container hover:bg-primary/10 text-on-surface hover:text-primary text-xs font-medium border border-outline-variant/30 transition-all disabled:opacity-40"
-        >
-          <span className="material-symbols-outlined text-[16px] text-primary">qr_code_scanner</span>
-          <span>Quick Scan</span>
-        </button>
       </div>
 
       {/* Center: Global Member Search Input */}
-      <div ref={searchContainerRef} className="relative flex-1 max-w-xs md:max-w-md mx-3">
+      <div ref={searchContainerRef} className="relative flex-1 max-w-xs md:max-w-md mx-3 text-[12px]">
         <div className="relative flex items-center">
           <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-on-surface-variant">
             <span className="material-symbols-outlined text-[18px]">search</span>
@@ -363,58 +348,8 @@ export const Header: React.FC = () => {
           </div>
         </div>
 
-        {/* Showcase Landing Switcher Button */}
-        <button
-          onClick={() => setActiveScreen('landing')}
-          className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 transition-all shadow-xs"
-          title="Switch to Product Showcase Landing Page"
-        >
-          <span className="material-symbols-outlined text-[16px]">storefront</span>
-          <span className="hidden sm:inline">Showcase</span>
-        </button>
-
-        {/* Tenant Admin RBAC Quick Switcher */}
-        <button
-          onClick={() => setActiveScreen(activeScreen === 'tenant-rbac' ? 'dashboard' : 'tenant-rbac')}
-          className={`hidden md:flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl transition-all border ${
-            activeScreen === 'tenant-rbac'
-              ? 'bg-primary text-on-primary border-primary shadow-md shadow-primary/20'
-              : 'bg-surface-container hover:bg-surface-container-high text-on-surface border-outline-variant/30'
-          }`}
-          title="Tenant Admin User-Wise RBAC & Function Permissions"
-        >
-          <span className="material-symbols-outlined text-[16px] text-tertiary">shield_person</span>
-          <span>Tenant RBAC</span>
-        </button>
-
-        {/* Quick Record Payment Action Button */}
-        <button
-          onClick={() => openModal('record-payment')}
-          className="hidden sm:flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface transition-all border border-outline-variant/30"
-        >
-          <span className="material-symbols-outlined text-[16px] text-tertiary">payments</span>
-          <span>Record Payment</span>
-        </button>
-
         {/* Persistent Real-Time Operations Alerts Notification Bell */}
         <PersistentNotificationBell />
-
-        {/* Super Admin Switcher Button - ONLY VISIBLE TO SUPER ADMIN */}
-        {isSuperAdmin && (
-          <button
-            onClick={() => setActiveScreen(activeScreen === 'super-admin' ? 'dashboard' : 'super-admin')}
-            className={`hidden md:flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl transition-all border ${
-              activeScreen === 'super-admin'
-                ? 'bg-primary text-on-primary border-primary shadow-md shadow-primary/20'
-                : 'bg-primary/20 text-primary border-primary/40 hover:bg-primary/30'
-            }`}
-          >
-            <span className="material-symbols-outlined text-[16px]">
-              {activeScreen === 'super-admin' ? 'store' : 'shield_person'}
-            </span>
-            <span>{activeScreen === 'super-admin' ? 'Gym Operations' : 'Super Admin Portal'}</span>
-          </button>
-        )}
 
         {/* Profile Avatar & Role Menu */}
         <div className="relative">

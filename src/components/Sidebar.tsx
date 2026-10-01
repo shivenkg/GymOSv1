@@ -97,7 +97,7 @@ export const Sidebar: React.FC = () => {
           onClick={() => setActiveScreen('dashboard')}
           className="flex items-center gap-3 cursor-pointer select-none overflow-hidden"
         >
-          {/* GymFlow / Ironline Club Icon */}
+          {/* Gymify / Ironline Club Icon */}
           <div className="w-9 h-9 rounded-xl bg-primary text-on-primary flex items-center justify-center shrink-0 shadow-md shadow-primary/20">
             <span className="material-symbols-outlined text-[20px]">fitness_center</span>
           </div>

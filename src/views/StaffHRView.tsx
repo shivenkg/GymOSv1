@@ -219,7 +219,14 @@ export const StaffHRView: React.FC = () => {
                           />
                         </div>
                         <div>
-                          <div className="font-semibold text-on-surface">{person.name}</div>
+                          <div className="font-semibold text-on-surface flex items-center gap-1.5">
+                            <span>{person.name}</span>
+                            {person.aadhaarNumber && (
+                              <span className="material-symbols-outlined text-emerald-500 text-[14px]" title="Aadhaar KYC & Academic Credentials Verified">
+                                verified
+                              </span>
+                            )}
+                          </div>
                           <div className="text-[11px] text-on-surface-variant font-mono">{person.phone}</div>
                         </div>
                       </td>

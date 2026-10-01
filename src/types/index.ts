@@ -134,9 +134,55 @@ export interface Member {
   totalCheckIns: number;
   assignedTrainer?: string;
   emergencyContact?: string;
+  // Mandatory Verification & KYC Fields
+  aadhaarNumber?: string;
+  aadhaarDocUrl?: string;
+  aadhaarDocName?: string;
+  emergencyContactName?: string;
+  emergencyContactPhone?: string;
+  emergencyContactRelation?: string;
+  // Gymify Gamification & Points Engine
+  gymifyPoints?: number;
+  gymifyTier?: 'Bronze' | 'Silver' | 'Gold' | 'Platinum' | 'Diamond';
+  referralsCount?: number;
+  referralsList?: GymifyReferral[];
+  pointsHistory?: GymifyPointsHistory[];
 }
 
-export type CheckInMethod = 'QR Scanner' | 'Manual Entry' | 'RFID Wristband';
+export interface GymifyReferral {
+  id: string;
+  referredName: string;
+  referredPhone: string;
+  date: string;
+  status: 'Joined (Awarded)' | 'Trial Active' | 'Pending Contact';
+  pointsAwarded: number;
+}
+
+export interface GymifyPointsHistory {
+  id: string;
+  type: 'attendance' | 'referral' | 'streak_bonus' | 'redemption' | 'manual_adjustment';
+  points: number;
+  description: string;
+  timestamp: string;
+}
+
+export interface BiometricLog {
+  id: string;
+  personType: 'member' | 'staff';
+  personId: string;
+  personName: string;
+  roleOrPlan: string;
+  timestamp: string;
+  timeFormatted: string;
+  verificationMethod: 'Camera Biometrics (Face Match)' | 'Anti-Spoofing Liveness Scan';
+  confidenceScore: number;
+  status: 'Verified Match' | 'Flagged / Low Confidence' | 'Access Denied';
+  capturedPhotoUrl?: string;
+  terminal: string;
+  pointsAwarded?: number;
+}
+
+export type CheckInMethod = 'QR Scanner' | 'Manual Entry' | 'RFID Wristband' | 'Biometric Camera' | 'Facial Recognition';
 export type CheckInStatus = 'Allowed' | 'Expired' | 'Access Denied';
 
 export interface CheckInLog {
@@ -218,6 +264,26 @@ export interface StaffMember {
   shiftType: string;
   geofenceStatus: 'Verified Inside' | 'Outside Geofence';
   onShift: boolean;
+  // Mandatory Compliance & Trainer Qualifications
+  aadhaarNumber?: string;
+  aadhaarDocUrl?: string;
+  aadhaarDocName?: string;
+  emergencyContactName?: string;
+  emergencyContactPhone?: string;
+  emergencyContactRelation?: string;
+  pastExperienceYears?: number;
+  pastWorkplace?: string;
+  specializations?: string;
+  certifications?: string;
+  academicDegree?: string;
+  academicInstitution?: string;
+  academicYear?: string;
+  certificationDocUrl?: string;
+  certificationDocName?: string;
+  academicDocUrl?: string;
+  academicDocName?: string;
+  resumeDocUrl?: string;
+  resumeDocName?: string;
 }
 
 export interface StaffCheckInFeed {
@@ -468,4 +534,42 @@ export interface DietPlan {
   meals: DietMeal[];
   assignedMembersCount: number;
 }
+
+// ==========================================
+// Landing Page CMS & Pricing Customization
+// ==========================================
+
+export interface LandingCMSPlan {
+  id: string;
+  name: string;
+  tier: 'starter' | 'growth' | 'pro' | 'enterprise';
+  monthlyPrice: number;
+  yearlyPrice: number;
+  annualDiscountPercent?: number;
+  badge?: string;
+  description: string;
+  features: string[];
+  isPopular?: boolean;
+  maxMembers?: string;
+  hardwareGates?: string;
+  setupFee?: number;
+  trialDays?: number;
+  ctaText?: string;
+  gstNote?: string;
+}
+
+export interface LandingCMSConfig {
+  badgeText: string;
+  heroHeadline: string;
+  heroHighlight: string;
+  heroSubtitle: string;
+  primaryCtaText: string;
+  secondaryCtaText: string;
+  announcementBanner: string;
+  showAnnouncement: boolean;
+  globalAnnualDiscountPercent?: number;
+  plans: LandingCMSPlan[];
+  lastUpdated: string;
+}
+
 
