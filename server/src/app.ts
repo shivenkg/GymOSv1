@@ -17,6 +17,9 @@ import { errorHandler } from './middleware/error.ts';
 export function createExpressApp(): Express {
   const app = express();
 
+  // Trust proxy headers (Google Cloud Run, Vite proxy, and reverse proxy ingresses)
+  app.set('trust proxy', true);
+
   // Basic security and parsing middlewares
   app.use(cors({
     origin: true,

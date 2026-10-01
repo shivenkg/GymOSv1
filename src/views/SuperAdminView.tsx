@@ -202,8 +202,8 @@ export const SuperAdminView: React.FC = () => {
 
   const handleDownloadCertificate = (license: SaaSLicense) => {
     const payload = {
-      $schema: 'https://gymos.cloud/schemas/v2/license.json',
-      system: 'GymOS Next-Gen Operating System',
+      $schema: 'https://gymofy.cloud/schemas/v2/license.json',
+      system: 'Gymofy Next-Gen Operating System',
       licenseId: license.id,
       licenseKey: license.licenseKey,
       organization: license.gymName,
@@ -1077,7 +1077,7 @@ export const SuperAdminView: React.FC = () => {
                         <span className="material-symbols-outlined text-[18px]">workspace_premium</span>
                       </div>
                       <div>
-                        <div className="text-xs font-bold text-on-surface">GymOS Digital Certificate</div>
+                        <div className="text-xs font-bold text-on-surface">Gymofy Digital Certificate</div>
                         <div className="text-[10px] text-primary font-mono">STATUS: ISSUED &amp; VERIFIED</div>
                       </div>
                     </div>

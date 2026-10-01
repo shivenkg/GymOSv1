@@ -22,15 +22,26 @@ export const config: ServerConfig = {
 };
 
 /**
- * Validates that DATABASE_URL is configured.
- * Throws a clear, descriptive error if missing.
+ * Checks whether DATABASE_URL is present and is a valid PostgreSQL connection string.
+ * Prevents non-PostgreSQL strings (e.g. mongodb+srv://) from crashing the pg driver.
+ */
+export function isPostgresConfigured(): boolean {
+  if (!config.databaseUrl || config.databaseUrl.trim() === '') {
+    return false;
+  }
+  const trimmed = config.databaseUrl.trim().toLowerCase();
+  return trimmed.startsWith('postgres://') || trimmed.startsWith('postgresql://');
+}
+
+/**
+ * Validates that DATABASE_URL is configured for PostgreSQL.
+ * Throws a clear, descriptive error if missing or invalid.
  */
 export function validateDatabaseConfig(): string {
-  if (!config.databaseUrl || config.databaseUrl.trim() === '') {
+  if (!isPostgresConfigured()) {
     throw new Error(
-      'DATABASE_URL environment variable is missing. ' +
-      'Please configure DATABASE_URL in your .env or environment configuration (e.g. postgresql://user:password@host:5432/gymos).'
+      'DATABASE_URL must be a valid PostgreSQL connection string (e.g. postgresql://user:password@host:5432/gymos).'
     );
   }
-  return config.databaseUrl;
+  return config.databaseUrl!;
 }

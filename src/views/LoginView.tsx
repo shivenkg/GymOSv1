@@ -78,20 +78,17 @@ export const LoginView: React.FC = () => {
       {/* Top Header Navigation */}
       <div className="max-w-7xl w-full mx-auto flex items-center justify-between z-20 pb-4">
         <div 
-          onClick={() => {
-            if (username.toLowerCase().includes('superadmin')) {
-              setActiveScreen('landing');
-            }
-          }}
-          className="flex items-center gap-3 group"
+          onClick={() => setActiveScreen('landing')}
+          className="flex items-center gap-3 group cursor-pointer"
+          title="Go to Product Showcase"
         >
           <img
-            alt="GymOS Logo"
+            alt="Gymofy Logo"
             className="h-9 w-auto object-contain transition-transform group-hover:scale-105"
             src={APP_LOGO}
           />
           <div>
-            <span className="text-xl font-headline font-bold text-primary tracking-tight">GymOS</span>
+            <span className="text-xl font-headline font-bold text-primary tracking-tight">Gymofy</span>
             <span className="block text-[10px] text-on-surface-variant font-mono uppercase tracking-widest">
               Enterprise Platform
             </span>
@@ -111,15 +108,13 @@ export const LoginView: React.FC = () => {
             </span>
           </button>
 
-          {username.toLowerCase().includes('superadmin') && (
-            <button
-              onClick={() => setActiveScreen('landing')}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-primary/10 text-xs font-medium text-primary hover:bg-primary/20 transition-all border border-primary/30"
-            >
-              <span className="material-symbols-outlined text-[16px]">rocket_launch</span>
-              <span>Product Showcase</span>
-            </button>
-          )}
+          <button
+            onClick={() => setActiveScreen('landing')}
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-primary text-on-primary text-xs font-semibold hover:opacity-95 transition-all shadow-md shadow-primary/20"
+          >
+            <span className="material-symbols-outlined text-[16px]">storefront</span>
+            <span>Product Showcase</span>
+          </button>
         </div>
       </div>
 
@@ -284,7 +279,7 @@ export const LoginView: React.FC = () => {
                 <span className="material-symbols-outlined text-[24px]">vpn_key</span>
               </div>
               <h1 className="text-2xl font-headline font-bold text-on-surface tracking-tight">
-                Sign In to GymOS
+                Sign In to Gymofy
               </h1>
               <p className="text-xs text-on-surface-variant mt-1">
                 Enter your credentials to access your club terminal or platform engine.
@@ -458,6 +453,20 @@ export const LoginView: React.FC = () => {
                   <code className="text-primary font-mono text-[11px]">admin@ironcore.com</code>).
                 </div>
               )}
+
+              {/* Explore Showcase Callout */}
+              <div className="mt-4 pt-3 border-t border-outline-variant/20">
+                <button
+                  type="button"
+                  onClick={() => setActiveScreen('landing')}
+                  className="w-full py-2.5 px-3 rounded-xl bg-surface-container hover:bg-surface-container-high border border-primary/30 text-xs font-semibold text-primary flex items-center justify-center gap-2 transition-all group cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-[17px] text-primary transition-transform group-hover:scale-110">
+                    storefront
+                  </span>
+                  <span>Explore Product Showcase &amp; Interactive Tour</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -465,7 +474,7 @@ export const LoginView: React.FC = () => {
 
       {/* Footer */}
       <div className="text-center text-xs text-on-surface-variant/70 z-10 pt-4">
-        GymOS™ Enterprise Infrastructure • Telemetry &amp; Access System v2.6.4
+        Gymofy™ Enterprise Infrastructure • Telemetry &amp; Access System v2.6.4
       </div>
     </div>
   );

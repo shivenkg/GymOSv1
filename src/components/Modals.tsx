@@ -16,7 +16,12 @@ export const Modals: React.FC = () => {
     updateClassCapacity,
     simulateScan,
     lastScannedMember,
-    isTerminalLocked
+    isTerminalLocked,
+    checkInMember,
+    renewMember,
+    toggleMemberFreeze,
+    showToast,
+    setActiveScreen,
   } = useGym();
 
   // Register Member state
@@ -862,6 +867,109 @@ export const Modals: React.FC = () => {
                 className="py-2 rounded-xl bg-error/20 text-error font-medium text-xs hover:bg-error/30 transition-colors"
               >
                 Drop / Remove 1 Attendee
+              </button>
+            </div>
+          </div>
+        )}
+        {/* Modal: Member Details Profile View */}
+        {activeModal === 'member-details' && modalPayload && (
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              {modalPayload.photoUrl ? (
+                <img
+                  src={modalPayload.photoUrl}
+                  alt={modalPayload.name}
+                  className="w-14 h-14 rounded-2xl object-cover border border-outline-variant/40"
+                />
+              ) : (
+                <div className="w-14 h-14 rounded-2xl bg-primary/20 text-primary text-xl font-bold flex items-center justify-center">
+                  {modalPayload.name.charAt(0)}
+                </div>
+              )}
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-lg font-headline font-bold text-on-surface">{modalPayload.name}</h3>
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold uppercase ${
+                    modalPayload.status === 'active'
+                      ? 'bg-emerald-500/20 text-emerald-500'
+                      : modalPayload.status === 'expired'
+                      ? 'bg-error/20 text-error'
+                      : 'bg-amber-500/20 text-amber-500'
+                  }`}>
+                    {modalPayload.status}
+                  </span>
+                </div>
+                <div className="text-xs text-on-surface-variant font-mono mt-0.5">
+                  ID: <span className="text-primary font-semibold">{modalPayload.memberCode}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick telemetry summary */}
+            <div className="grid grid-cols-2 gap-2 bg-surface-container p-3 rounded-xl border border-outline-variant/30 text-xs">
+              <div>
+                <div className="text-[10px] text-on-surface-variant uppercase font-mono">Plan</div>
+                <div className="font-semibold text-on-surface mt-0.5">{modalPayload.plan}</div>
+              </div>
+              <div>
+                <div className="text-[10px] text-on-surface-variant uppercase font-mono">Expiry Date</div>
+                <div className="font-semibold text-on-surface mt-0.5">{modalPayload.expiryDate || 'N/A'}</div>
+              </div>
+              <div className="mt-2">
+                <div className="text-[10px] text-on-surface-variant uppercase font-mono">Phone</div>
+                <div className="font-semibold text-on-surface mt-0.5">{modalPayload.phone}</div>
+              </div>
+              <div className="mt-2">
+                <div className="text-[10px] text-on-surface-variant uppercase font-mono">Email</div>
+                <div className="font-semibold text-on-surface mt-0.5 truncate">{modalPayload.email}</div>
+              </div>
+              <div className="mt-2">
+                <div className="text-[10px] text-on-surface-variant uppercase font-mono">Total Visits</div>
+                <div className="font-semibold text-primary mt-0.5">{modalPayload.totalCheckIns || 0} visits</div>
+              </div>
+              <div className="mt-2">
+                <div className="text-[10px] text-on-surface-variant uppercase font-mono">Last Visit</div>
+                <div className="font-semibold text-on-surface mt-0.5">{modalPayload.lastVisit || 'Today'}</div>
+              </div>
+            </div>
+
+            {/* Quick Action buttons */}
+            <div className="flex flex-wrap gap-2 pt-2">
+              <button
+                type="button"
+                onClick={async () => {
+                  await checkInMember(modalPayload.id);
+                  closeModal();
+                }}
+                disabled={modalPayload.status !== 'active'}
+                className="flex-1 py-2 px-3 rounded-xl bg-primary text-on-primary font-semibold text-xs hover:opacity-90 transition-all disabled:opacity-40 flex items-center justify-center gap-1.5"
+              >
+                <span className="material-symbols-outlined text-[16px]">qr_code_scanner</span>
+                <span>Check-in Now</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  renewMember(modalPayload.id);
+                  closeModal();
+                }}
+                className="flex-1 py-2 px-3 rounded-xl bg-emerald-600 text-white font-semibold text-xs hover:opacity-90 transition-all flex items-center justify-center gap-1.5"
+              >
+                <span className="material-symbols-outlined text-[16px]">autorenew</span>
+                <span>Renew Plan</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  closeModal();
+                  setActiveScreen('members');
+                }}
+                className="w-full py-2 px-3 rounded-xl bg-surface-container text-on-surface font-medium text-xs hover:bg-surface-container-high transition-all border border-outline-variant/30 flex items-center justify-center gap-1.5"
+              >
+                <span className="material-symbols-outlined text-[16px]">group</span>
+                <span>Open in Full Member Directory</span>
               </button>
             </div>
           </div>

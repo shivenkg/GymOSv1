@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useGym } from '../context/GymContext';
 import { BranchId } from '../types';
+import { PersistentNotificationBell } from './PersistentNotificationBell';
 
 export const Header: React.FC = () => {
   const {
@@ -27,7 +28,6 @@ export const Header: React.FC = () => {
     toggleSidebar,
   } = useGym();
   const [showBranchMenu, setShowBranchMenu] = useState(false);
-  const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
 
   // Global Member Search State
@@ -68,13 +68,6 @@ export const Header: React.FC = () => {
     ).slice(0, 8);
   }, [globalSearch, members]);
 
-  const notifications = [
-    { id: 1, title: 'Geofence Offset Detected', text: 'David Chen checked in 45m outside perimeter', time: '12:55 PM', urgent: true },
-    { id: 2, title: 'Expiring Memberships', text: '18 memberships expire in next 7 days', time: '1h ago', urgent: true },
-    { id: 3, title: 'Pending Follow-up', text: 'Kevin Durant trial ended 2 days ago', time: '2h ago', urgent: false },
-    { id: 4, title: 'Class Capacity Alert', text: 'Power Yoga Flow is full with 6 on waitlist', time: '3h ago', urgent: false },
-  ];
-
   const isSuperAdmin = currentUser?.role === 'superadmin';
 
   const getFunctionInfo = () => {
@@ -89,10 +82,18 @@ export const Header: React.FC = () => {
       case 'attendance':
       case 'members':
       case 'classes-pt':
+      case 'workouts-diets':
         return {
-          fn: 'Operation',
-          sub: activeScreen === 'attendance' ? 'Floor & Gate' : activeScreen === 'members' ? 'Member Registry' : 'Classes & PT Calendar',
-          icon: 'tune'
+          fn: 'Studio & Fitness',
+          sub: activeScreen === 'workouts-diets' ? 'Indian Diets & Workouts' : 'Classes & PT Calendar',
+          icon: activeScreen === 'workouts-diets' ? 'restaurant' : 'calendar_month'
+        };
+      case 'announcements':
+      case 'complaints':
+        return {
+          fn: 'Daily Operations Desk',
+          sub: activeScreen === 'complaints' ? 'Complaints & Maintenance' : 'WhatsApp Broadcasts',
+          icon: activeScreen === 'complaints' ? 'report_problem' : 'campaign'
         };
       case 'crm-leads':
         return { fn: 'CRM & Leads', sub: 'Inquiries & Pipeline', icon: 'contacts' };
@@ -209,7 +210,7 @@ export const Header: React.FC = () => {
               setIsSearchFocused(true);
             }}
             onFocus={() => setIsSearchFocused(true)}
-            placeholder="Search members by name or ID (e.g. Aarav, #MEM-101)..."
+            placeholder="Search members, trainers, payments, classes..."
             className="w-full bg-surface-container/90 hover:bg-surface-container focus:bg-surface-container-high pl-9 pr-8 py-1.5 rounded-xl text-xs text-on-surface placeholder:text-on-surface-variant/60 border border-outline-variant/30 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-all shadow-xs"
           />
           {globalSearch && (
@@ -258,7 +259,7 @@ export const Header: React.FC = () => {
                     onClick={() => {
                       setGlobalSearch('');
                       setIsSearchFocused(false);
-                      setActiveScreen('members');
+                      openModal('member-details', member);
                     }}
                     className="flex items-center justify-between p-2 rounded-xl hover:bg-surface-container cursor-pointer transition-all group"
                   >
@@ -337,14 +338,39 @@ export const Header: React.FC = () => {
 
         {/* Light / Dark Mode Toggle Button */}
         <button
-          onClick={toggleTheme}
-          className="p-2 rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface transition-all border border-outline-variant/30 flex items-center justify-center group"
+          onClick={() => {
+            toggleTheme();
+            showToast('Theme Mode Switched', `Switched to ${theme === 'dark' ? 'Light' : 'Dark'} mode`, 'info');
+          }}
+          className="px-2.5 py-1.5 rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface transition-all border border-outline-variant/30 flex items-center gap-1.5 group cursor-pointer"
           title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
           aria-label="Toggle Light and Dark Mode"
         >
-          <span className="material-symbols-outlined text-[18px] text-primary transition-transform group-hover:rotate-45">
+          <span className="material-symbols-outlined text-[18px] text-amber-500 transition-transform group-hover:rotate-45">
             {theme === 'dark' ? 'light_mode' : 'dark_mode'}
           </span>
+          <span className="hidden sm:inline text-xs font-semibold">
+            {theme === 'dark' ? 'Light' : 'Dark'}
+          </span>
+        </button>
+
+        {/* Club & Date Indicator Badge (Matching inspiration image) */}
+        <div className="hidden xl:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-surface-container border border-outline-variant/30 text-xs">
+          <span className="font-semibold text-on-surface">Ironline Strength Club</span>
+          <span className="text-[11px] font-mono text-on-surface-variant">07/13/2026</span>
+          <div className="w-5 h-5 rounded-full bg-primary text-on-primary flex items-center justify-center text-[10px]">
+            <span className="material-symbols-outlined text-[12px]">fitness_center</span>
+          </div>
+        </div>
+
+        {/* Showcase Landing Switcher Button */}
+        <button
+          onClick={() => setActiveScreen('landing')}
+          className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 transition-all shadow-xs"
+          title="Switch to Product Showcase Landing Page"
+        >
+          <span className="material-symbols-outlined text-[16px]">storefront</span>
+          <span className="hidden sm:inline">Showcase</span>
         </button>
 
         {/* Tenant Admin RBAC Quick Switcher */}
@@ -370,42 +396,8 @@ export const Header: React.FC = () => {
           <span>Record Payment</span>
         </button>
 
-        {/* Notifications Popover */}
-        <div className="relative">
-          <button
-            onClick={() => {
-              setShowNotifications(!showNotifications);
-              setShowProfileMenu(false);
-            }}
-            className="p-2 text-on-surface-variant hover:text-on-surface rounded-full hover:bg-surface-container transition-colors relative"
-            title="Notifications"
-          >
-            <span className="material-symbols-outlined text-[20px]">notifications</span>
-            <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-primary rounded-full ring-2 ring-surface"></span>
-          </button>
-
-          {showNotifications && (
-            <div className="absolute right-0 top-12 w-80 bg-surface-container-high border border-outline-variant/50 rounded-2xl shadow-2xl p-4 z-50 animate-in fade-in duration-150">
-              <div className="flex items-center justify-between pb-3 border-b border-outline-variant/20 mb-3">
-                <span className="font-headline font-semibold text-sm text-on-surface">System Alerts</span>
-                <span className="text-[11px] text-primary font-medium cursor-pointer hover:underline" onClick={() => showToast('Notifications', 'All marked as read', 'info')}>
-                  Mark all read
-                </span>
-              </div>
-              <div className="space-y-2.5 max-h-72 overflow-y-auto pr-1">
-                {notifications.map((n) => (
-                  <div key={n.id} className="p-2.5 rounded-xl bg-surface-container hover:bg-surface-container-highest transition-colors cursor-pointer">
-                    <div className="flex items-center justify-between text-xs mb-1">
-                      <span className={`font-semibold ${n.urgent ? 'text-error' : 'text-on-surface'}`}>{n.title}</span>
-                      <span className="text-[10px] text-on-surface-variant">{n.time}</span>
-                    </div>
-                    <p className="text-[11px] text-on-surface-variant leading-snug">{n.text}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
+        {/* Persistent Real-Time Operations Alerts Notification Bell */}
+        <PersistentNotificationBell />
 
         {/* Super Admin Switcher Button - ONLY VISIBLE TO SUPER ADMIN */}
         {isSuperAdmin && (
@@ -429,7 +421,6 @@ export const Header: React.FC = () => {
           <button
             onClick={() => {
               setShowProfileMenu(!showProfileMenu);
-              setShowNotifications(false);
             }}
             className="flex items-center gap-2.5 p-1 pl-2.5 bg-surface-container rounded-full hover:bg-surface-container-high transition-all border border-outline-variant/40"
           >

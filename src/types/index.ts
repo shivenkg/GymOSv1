@@ -1,11 +1,17 @@
 export type ScreenId =
   | 'dashboard'
   | 'members'
+  | 'memberships'
   | 'attendance'
   | 'classes-pt'
+  | 'workouts-diets'
   | 'crm-leads'
+  | 'announcements'
+  | 'complaints'
   | 'staff-hr'
   | 'payments'
+  | 'expenses'
+  | 'analytics'
   | 'reports'
   | 'settings'
   | 'tenant-rbac'
@@ -13,6 +19,18 @@ export type ScreenId =
   | 'login'
   | 'super-admin'
   | 'system-settings';
+
+export interface Expense {
+  id: string;
+  ref: string;
+  date: string;
+  category: 'Supplies' | 'Salaries' | 'Marketing' | 'Utilities' | 'Rent' | 'Maintenance' | 'Equipment' | 'Other';
+  description: string;
+  amount: number;
+  paymentMethod: 'Card' | 'Cash' | 'Bank Transfer' | 'Mobile Payment' | 'UPI';
+  receiptUrl?: string;
+  notes?: string;
+}
 
 export type UserRole = 'superadmin' | 'director' | 'manager' | 'staff';
 
@@ -363,5 +381,91 @@ export interface GoogleSheetIntegration {
   fieldMappings: SheetFieldMapping[];
   serviceAccountEmail?: string;
   errorMessage?: string;
+}
+
+// ==========================================
+// Complaints & Maintenance Ticketing
+// ==========================================
+export type ComplaintStatus = 'Open' | 'In Progress' | 'Resolved';
+export type ComplaintPriority = 'Low' | 'Medium' | 'High' | 'Urgent';
+
+export interface Complaint {
+  id: string;
+  ticketNumber: string;
+  memberId: string;
+  memberName: string;
+  memberPhone: string;
+  category: 'Equipment' | 'Cleanliness' | 'Air Conditioning' | 'Turnstile / Access' | 'Trainer / Staff' | 'Billing' | 'Locker' | 'Other';
+  subject: string;
+  description: string;
+  priority: ComplaintPriority;
+  status: ComplaintStatus;
+  assignedTo: string;
+  createdAt: string;
+  resolvedAt?: string;
+  resolutionNote?: string;
+  branchId?: string;
+}
+
+// ==========================================
+// Announcements & WhatsApp Broadcasts
+// ==========================================
+export interface Announcement {
+  id: string;
+  title: string;
+  category: 'Urgent Alert' | 'Festival Timings' | 'Class Update' | 'Maintenance' | 'Promotion';
+  content: string;
+  date: string;
+  targetAudience: 'All Members' | 'Trainers' | 'VIP Members' | 'Morning Batch';
+  sentViaWhatsApp: boolean;
+  author: string;
+}
+
+// ==========================================
+// Workout & Diet Plans
+// ==========================================
+export interface WorkoutDay {
+  dayName: string;
+  focus: string;
+  exercises: {
+    name: string;
+    sets: number;
+    reps: string;
+    rest: string;
+    notes?: string;
+  }[];
+}
+
+export interface WorkoutPlan {
+  id: string;
+  name: string;
+  category: 'Hypertrophy PPL' | 'Desi Akhada Strength' | 'Fat Loss HIIT' | 'Beginner Strength' | 'CrossFit Elite';
+  difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
+  durationWeeks: number;
+  daysPerWeek: number;
+  description: string;
+  days: WorkoutDay[];
+  assignedMembersCount: number;
+}
+
+export interface DietMeal {
+  mealName: string;
+  time: string;
+  items: string[];
+  proteinGrams: number;
+  calories: number;
+}
+
+export interface DietPlan {
+  id: string;
+  name: string;
+  dietType: 'Indian Veg High-Protein' | 'Indian Non-Veg Lean Muscle' | 'Desi Fat Loss' | 'Keto Clean' | 'Weight Gainer Bulk';
+  totalCalories: number;
+  proteinGrams: number;
+  carbsGrams: number;
+  fatsGrams: number;
+  description: string;
+  meals: DietMeal[];
+  assignedMembersCount: number;
 }
 

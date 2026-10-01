@@ -7,7 +7,12 @@ import {
   Lead,
   StaffMember,
   StaffCheckInFeed,
-  Invoice
+  Invoice,
+  Expense,
+  Complaint,
+  Announcement,
+  WorkoutPlan,
+  DietPlan
 } from '../types';
 
 export const APP_LOGO = 'https://lh3.googleusercontent.com/aida-public/AB6AXuCUP-8_flvki-ZmX5_fHcfdgi2gZd4-5f61Cl88TgInYOILlELUWxWw6AID74nyRkVaBDzb3zJrKa9fb4TdmvjFxhcq2JA-KbwzMsNj2YiwRCWZMHyKeoRXHfOLtB04fFv0IP10ztdCh1W4n3zV8rKR9U3AW7sjpXTMNfWjFSHmGHIs_nyIBnzE9M3iNvdc_CGQZ6fSw4UZBGTBHqa0OnBW7HMvfgVcjhM-rg2k3ipZBO9TWWpQiPC0AA';
@@ -828,3 +833,317 @@ export const AT_RISK_MEMBERS = [
     riskType: 'medium'
   }
 ];
+
+export const INITIAL_EXPENSES: Expense[] = [
+  { id: 'exp-1', ref: 'EXP-0021', date: '07/15/2026', category: 'Supplies', description: 'New kettlebells set (16kg & 24kg)', amount: 564.00, paymentMethod: 'Mobile Payment' },
+  { id: 'exp-2', ref: 'EXP-0023', date: '07/11/2026', category: 'Supplies', description: 'Protein bar restock & BCAA powders', amount: 210.00, paymentMethod: 'Cash' },
+  { id: 'exp-3', ref: 'EXP-0022', date: '07/09/2026', category: 'Marketing', description: 'Instagram promo boost & summer ad blitz', amount: 120.00, paymentMethod: 'Card' },
+  { id: 'exp-4', ref: 'EXP-0019', date: '07/05/2026', category: 'Salaries', description: 'Trainer & front-desk payroll (1st fortnight)', amount: 3443.00, paymentMethod: 'Bank Transfer' },
+  { id: 'exp-5', ref: 'EXP-0020', date: '07/05/2026', category: 'Utilities', description: 'Electricity, water & gigabit internet', amount: 307.00, paymentMethod: 'Card' },
+  { id: 'exp-6', ref: 'EXP-0018', date: '07/01/2026', category: 'Rent', description: 'Main gym facility monthly lease', amount: 1850.00, paymentMethod: 'Bank Transfer' },
+];
+
+export const INITIAL_COMPLAINTS: Complaint[] = [
+  {
+    id: 'cmp-1',
+    ticketNumber: 'TKT-1082',
+    memberId: 'm1',
+    memberName: 'Aarav Sharma',
+    memberPhone: '+91 98201 44521',
+    category: 'Air Conditioning',
+    subject: 'Cardio Section AC Cooling Low during 6:30 PM Peak',
+    description: 'During evening peak hours, the cross-trainer and treadmill corner feels excessively humid. Temperature displayed was 27C instead of 21C.',
+    priority: 'High',
+    status: 'In Progress',
+    assignedTo: 'Amit Kumar (HVAC Lead)',
+    createdAt: 'Today, 09:15 AM',
+    branchId: 'downtown'
+  },
+  {
+    id: 'cmp-2',
+    ticketNumber: 'TKT-1081',
+    memberId: 'm3',
+    memberName: 'Priya Patel',
+    memberPhone: '+91 98112 30911',
+    category: 'Turnstile / Access',
+    subject: 'Turnstile Tripod QR Scanner Delay',
+    description: 'The mobile QR scanner took multiple attempts to trigger the tripod arm on Gate 2.',
+    priority: 'Medium',
+    status: 'Resolved',
+    assignedTo: 'Rajesh Nair (Hardware Tech)',
+    createdAt: 'Yesterday, 07:30 AM',
+    resolvedAt: 'Yesterday, 02:00 PM',
+    resolutionNote: 'Cleaned camera lens on eSSL biometric terminal and restarted local turnstile relay driver.',
+    branchId: 'downtown'
+  },
+  {
+    id: 'cmp-3',
+    ticketNumber: 'TKT-1079',
+    memberId: 'm4',
+    memberName: 'Rohan Mehra',
+    memberPhone: '+91 97118 76543',
+    category: 'Equipment',
+    subject: 'Dumbbell 24kg Rubber Grip Loose',
+    description: 'The right rubber ring on the 24kg hex dumbbell is vibrating during heavy presses.',
+    priority: 'Medium',
+    status: 'Open',
+    assignedTo: 'Fitness Floor Marshals',
+    createdAt: '2 days ago',
+    branchId: 'downtown'
+  },
+  {
+    id: 'cmp-4',
+    ticketNumber: 'TKT-1075',
+    memberId: 'm2',
+    memberName: 'Vikramaditya Rao',
+    memberPhone: '+91 99304 88122',
+    category: 'Cleanliness',
+    subject: 'Steam Room Steam Flow Timing Extension',
+    description: 'Requesting the steam room session cycle to be increased from 15 minutes to 20 minutes between auto-cycles.',
+    priority: 'Low',
+    status: 'Resolved',
+    assignedTo: 'Facility Supervisor',
+    createdAt: '3 days ago',
+    resolvedAt: '2 days ago',
+    resolutionNote: 'Adjusted digital timer relay in spa control unit.',
+    branchId: 'downtown'
+  },
+  {
+    id: 'cmp-5',
+    ticketNumber: 'TKT-1071',
+    memberId: 'm5',
+    memberName: 'Neha Deshmukh',
+    memberPhone: '+91 98450 11234',
+    category: 'Billing',
+    subject: 'GST Invoice ITC Credit Details on Receipt',
+    description: 'Need company GSTIN updated on quarterly membership tax invoice for corporate wellness tax deduction.',
+    priority: 'Medium',
+    status: 'In Progress',
+    assignedTo: 'Pooja Iyer (Accounts Desk)',
+    createdAt: '4 days ago',
+    branchId: 'downtown'
+  }
+];
+
+export const INITIAL_ANNOUNCEMENTS: Announcement[] = [
+  {
+    id: 'ann-1',
+    title: 'Independence Day Mega Fitness Bootcamp & Pull-Up Challenge',
+    category: 'Urgent Alert',
+    content: 'Join our special morning session this Friday! Open to all active and trial members with customized prizes, protein shaker bottles, and gym merch.',
+    date: 'Aug 13, 2026',
+    targetAudience: 'All Members',
+    sentViaWhatsApp: true,
+    author: 'Coach Vikramaditya'
+  },
+  {
+    id: 'ann-2',
+    title: 'Sunday Morning Special Vinyasa Yoga Session with Guest Yogini',
+    category: 'Class Update',
+    content: '90-minute holistic mobility, breathwork & core endurance workshop. Pre-booking mandatory through the Member App (limit 25 slots).',
+    date: 'Aug 10, 2026',
+    targetAudience: 'All Members',
+    sentViaWhatsApp: true,
+    author: 'Front Desk Admin'
+  },
+  {
+    id: 'ann-3',
+    title: 'eSSL Biometric Gate Firmware & Sync Upgrade',
+    category: 'Maintenance',
+    content: 'Scheduled server and turnstile firmware upgrade on Sunday night (11:00 PM to 12:30 AM). Offline check-ins will cache automatically.',
+    date: 'Aug 05, 2026',
+    targetAudience: 'Trainers',
+    sentViaWhatsApp: false,
+    author: 'Systems Admin'
+  },
+  {
+    id: 'ann-4',
+    title: 'Fresh Stock: 100% Authentic Whey Isolate & Sattu Protein Cafe',
+    category: 'Promotion',
+    content: 'Restocked premium chocolate whey, creatine monohydrate, and pre-workout drinks at our front-desk nutrition counter. 10% off for Annual VIPs.',
+    date: 'Aug 01, 2026',
+    targetAudience: 'All Members',
+    sentViaWhatsApp: true,
+    author: 'Gym Store Team'
+  }
+];
+
+export const INITIAL_WORKOUT_PLANS: WorkoutPlan[] = [
+  {
+    id: 'wp-1',
+    name: 'Push-Pull-Legs (PPL) Lean Hypertrophy',
+    category: 'Hypertrophy PPL',
+    difficulty: 'Intermediate',
+    durationWeeks: 12,
+    daysPerWeek: 6,
+    description: 'Classic push-pull-legs split targeting progressive overload, hypertrophy, and joint longevity with structured rest days.',
+    assignedMembersCount: 42,
+    days: [
+      {
+        dayName: 'Day 1: Push (Chest, Shoulders & Triceps)',
+        focus: 'Upper body pushing power',
+        exercises: [
+          { name: 'Barbell Flat Bench Press', sets: 4, reps: '8-10', rest: '90s', notes: 'Maintain scapular retraction' },
+          { name: 'Incline Dumbbell Press (30 deg)', sets: 3, reps: '10-12', rest: '75s', notes: 'Full stretch at bottom' },
+          { name: 'Standing Dumbbell Lateral Raises', sets: 4, reps: '15-20', rest: '45s', notes: 'Lead with elbows' },
+          { name: 'Overhead Cable Tricep Extension', sets: 3, reps: '12-15', rest: '60s' },
+          { name: 'Tricep Rope Pushdowns', sets: 3, reps: '12-15', rest: '45s' }
+        ]
+      },
+      {
+        dayName: 'Day 2: Pull (Back, Rear Delts & Biceps)',
+        focus: 'Lat width & posterior chain density',
+        exercises: [
+          { name: 'Conventional Deadlift or Rack Pull', sets: 3, reps: '5-6', rest: '120s' },
+          { name: 'Wide-Grip Lat Pulldowns', sets: 4, reps: '10-12', rest: '60s' },
+          { name: 'Chest-Supported T-Bar Row', sets: 3, reps: '10-12', rest: '75s' },
+          { name: 'Rear Delt Face Pulls with Rope', sets: 4, reps: '15-20', rest: '45s' },
+          { name: 'Incline Dumbbell Bicep Curls', sets: 3, reps: '10-12', rest: '60s' }
+        ]
+      },
+      {
+        dayName: 'Day 3: Legs & Core Power',
+        focus: 'Quad drive, hamstrings & calves',
+        exercises: [
+          { name: 'Barbell Back Squats', sets: 4, reps: '6-8', rest: '120s', notes: 'Hit parallel depth' },
+          { name: 'Romanian Deadlifts (RDL)', sets: 3, reps: '8-10', rest: '90s' },
+          { name: 'Leg Press (45 degree)', sets: 3, reps: '12-15', rest: '75s' },
+          { name: 'Standing Calf Raises', sets: 4, reps: '15-20', rest: '45s' },
+          { name: 'Hanging Leg Raises', sets: 3, reps: '15', rest: '45s' }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'wp-2',
+    name: 'Desi Akhada Functional Strength & Conditioning',
+    category: 'Desi Akhada Strength',
+    difficulty: 'Advanced',
+    durationWeeks: 8,
+    daysPerWeek: 4,
+    description: 'Traditional Indian wrestling (Akhada) endurance and functional strength combined with modern barbell powerlifting.',
+    assignedMembersCount: 28,
+    days: [
+      {
+        dayName: 'Day 1: Clubbell Swings & Hindu Pushups',
+        focus: 'Rotational core power & shoulder girdle resilience',
+        exercises: [
+          { name: 'Mugdar / Heavy Clubbell 360 Swings', sets: 4, reps: '20 each arm', rest: '60s' },
+          { name: 'Dands (Hindu Pushups)', sets: 4, reps: '25-30', rest: '60s' },
+          { name: 'Baithaks (Deep Hindu Squats)', sets: 4, reps: '50', rest: '60s' },
+          { name: 'Farmer Carry with Heavy Trap Bar', sets: 4, reps: '40 meters', rest: '90s' }
+        ]
+      },
+      {
+        dayName: 'Day 2: Heavy Barbell Complex',
+        focus: 'Raw posterior chain & overhead lockout',
+        exercises: [
+          { name: 'Overhead Barbell Military Press', sets: 5, reps: '5', rest: '90s' },
+          { name: 'Barbell Clean & Strict Press', sets: 4, reps: '6', rest: '90s' },
+          { name: 'Weighted Pull-Ups', sets: 4, reps: '6-8', rest: '75s' },
+          { name: 'Heavy Kettlebell Snatches', sets: 3, reps: '15 each arm', rest: '60s' }
+        ]
+      }
+    ]
+  }
+];
+
+export const INITIAL_DIET_PLANS: DietPlan[] = [
+  {
+    id: 'dp-1',
+    name: 'Indian Vegetarian High-Protein Split',
+    dietType: 'Indian Veg High-Protein',
+    totalCalories: 2250,
+    proteinGrams: 145,
+    carbsGrams: 230,
+    fatsGrams: 65,
+    description: 'Engineered specifically for Indian vegetarian lifters using whole foods (paneer, moong dal, sattu, curd) alongside whey supplementation.',
+    assignedMembersCount: 56,
+    meals: [
+      {
+        mealName: 'Meal 1: High Protein Breakfast (08:30 AM)',
+        time: '08:30 AM',
+        items: ['3 Besan / Moong Dal Chillas', '100g Fresh Low-Fat Paneer Bhurji', '1 Cup Green Tea / Black Coffee'],
+        proteinGrams: 32,
+        calories: 480
+      },
+      {
+        mealName: 'Meal 2: Mid-Morning Energizer (11:30 AM)',
+        time: '11:30 AM',
+        items: ['1 Glass Chana Sattu Drink (40g sattu + lemon + jeera)', 'Handful Roasted Chana (30g)'],
+        proteinGrams: 20,
+        calories: 270
+      },
+      {
+        mealName: 'Meal 3: Wholesome Indian Lunch (02:00 PM)',
+        time: '02:00 PM',
+        items: ['2 Multigrain / Jowar Rotis', '1 Large Bowl Dal Tadka (Toor / Moong)', '150g Low-fat Curd / Dahi', 'Cucumber Tomato Salad'],
+        proteinGrams: 28,
+        calories: 550
+      },
+      {
+        mealName: 'Meal 4: Pre / Post-Workout Fuel (05:30 PM)',
+        time: '05:30 PM',
+        items: ['1 Scoop Whey Protein Isolate in water', '1 Robusta Banana', '5 Almonds + 2 Walnuts'],
+        proteinGrams: 30,
+        calories: 320
+      },
+      {
+        mealName: 'Meal 5: Muscle Recovery Dinner (08:45 PM)',
+        time: '08:45 PM',
+        items: ['50g Soya Chunks Curry (boiled & cooked with light olive oil)', '1 Roti + Steamed Mixed Vegetables (Spinach, Broccoli, Carrots)'],
+        proteinGrams: 35,
+        calories: 430
+      }
+    ]
+  },
+  {
+    id: 'dp-2',
+    name: 'Indian Non-Veg Lean Muscle Shred',
+    dietType: 'Indian Non-Veg Lean Muscle',
+    totalCalories: 2450,
+    proteinGrams: 180,
+    carbsGrams: 240,
+    fatsGrams: 62,
+    description: 'High-protein diet featuring whole eggs, grilled chicken breast, fish, brown basmati rice, and desi peanut butter for rapid muscle recovery.',
+    assignedMembersCount: 68,
+    meals: [
+      {
+        mealName: 'Meal 1: Breakfast Power Bowl (08:00 AM)',
+        time: '08:00 AM',
+        items: ['4 Boiled Egg Whites + 2 Whole Eggs', '60g Rolled Oats with 200ml Skimmed Milk & Berries', 'Black Coffee'],
+        proteinGrams: 38,
+        calories: 510
+      },
+      {
+        mealName: 'Meal 2: Mid-Day Snack (11:30 AM)',
+        time: '11:30 AM',
+        items: ['1 Medium Apple', '1 Scoop Whey Protein Shake', '10 Raw Almonds'],
+        proteinGrams: 28,
+        calories: 310
+      },
+      {
+        mealName: 'Meal 3: Gym Pro Lunch (01:45 PM)',
+        time: '01:45 PM',
+        items: ['180g Grilled Lemon-Herb Chicken Breast', '150g Cooked Brown Basmati Rice', 'Steamed Green Beans & Beetroot'],
+        proteinGrams: 48,
+        calories: 580
+      },
+      {
+        mealName: 'Meal 4: Pre-Workout Quick Snack (05:00 PM)',
+        time: '05:00 PM',
+        items: ['2 Slices Whole Wheat Bread with 25g 100% Desi Peanut Butter', '1 Black Coffee with Cinnamon'],
+        proteinGrams: 14,
+        calories: 280
+      },
+      {
+        mealName: 'Meal 5: Dinner Recovery (08:30 PM)',
+        time: '08:30 PM',
+        items: ['150g Grilled Fish or Chicken Tikka', '1 Bowl Yellow Moong Dal', 'Large Mixed Veggie Bowl with Lemon'],
+        proteinGrams: 52,
+        calories: 570
+      }
+    ]
+  }
+];
+

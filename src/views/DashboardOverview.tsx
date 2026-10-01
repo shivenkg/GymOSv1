@@ -225,36 +225,31 @@ export const DashboardOverview: React.FC = () => {
         <div className="absolute -right-20 -top-20 w-80 h-80 bg-primary/10 rounded-full blur-3xl pointer-events-none"></div>
         <div>
           <span className="text-xs uppercase tracking-wider text-primary font-semibold font-headline">
-            Operations Core / {currentBranch.name}
+            Ironline Strength Club • Gym Management
           </span>
           <h1 className="text-3xl font-headline font-bold text-on-surface mt-1 tracking-tight">
-            Dashboard Overview
+            Dashboard
           </h1>
           <p className="text-sm text-on-surface-variant mt-1">
-            Real-time telemetry and member flow for today,{' '}
-            <span className="text-on-surface font-semibold">{currentDate}</span>.
+            Welcome back — here's how Ironline Strength Club is doing today.
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-3 z-10">
           <button
-            className="flex items-center gap-2 bg-primary text-on-primary px-4 py-2.5 rounded-xl font-semibold text-sm hover:opacity-90 transition-all shadow-sm"
-            onClick={() => openModal('register-member')}
+            className="flex items-center gap-2 bg-surface-container hover:bg-surface-container-high text-on-surface px-4 py-2.5 rounded-xl font-semibold text-sm border border-outline-variant/30 transition-all shadow-xs"
+            onClick={() => openModal('scan-qr')}
           >
-            <span className="material-symbols-outlined text-[18px]">person_add</span>
-            <span>Register Member</span>
+            <span className="material-symbols-outlined text-[18px]">calendar_today</span>
+            <span>Check-in</span>
           </button>
 
-          {/* QR Code for Fees Payment Trigger Button */}
           <button
-            className="flex items-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-4 py-2.5 rounded-xl font-semibold text-sm hover:opacity-90 transition-all shadow-md shadow-emerald-900/20"
-            onClick={() => {
-              setSelectedPendingPayment(null);
-              setIsUPIModalOpen(true);
-            }}
+            className="flex items-center gap-2 bg-primary text-on-primary px-4 py-2.5 rounded-xl font-semibold text-sm hover:opacity-90 transition-all shadow-md shadow-primary/20"
+            onClick={() => openModal('register-member')}
           >
-            <span className="material-symbols-outlined text-[18px]">qr_code_2</span>
-            <span>Pay Fees via QR</span>
+            <span className="material-symbols-outlined text-[18px]">add</span>
+            <span>+ New Member</span>
           </button>
 
           <button
@@ -264,13 +259,181 @@ export const DashboardOverview: React.FC = () => {
             <span className="material-symbols-outlined text-[18px]">payments</span>
             <span>Record Payment</span>
           </button>
-          <button
-            className="flex items-center gap-2 bg-surface-container-high text-on-surface px-4 py-2.5 rounded-xl font-medium text-sm hover:bg-surface-variant transition-all border border-outline-variant/40"
-            onClick={() => openModal('scan-qr')}
-          >
-            <span className="material-symbols-outlined text-[18px]">qr_code_scanner</span>
-            <span>Scan QR Check-in</span>
-          </button>
+        </div>
+      </div>
+
+      {/* 8 Metric KPI Cards matching Image 1 */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        {/* 1. Total Members */}
+        <div
+          onClick={() => setActiveScreen('members')}
+          className="bg-surface-container-low p-4 sm:p-5 rounded-2xl border border-outline-variant/30 flex flex-col justify-between cursor-pointer hover:border-primary/40 transition-all group shadow-xs"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-on-surface-variant font-medium">Total Members</span>
+            <div className="w-8 h-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+              <span className="material-symbols-outlined text-[18px]">group</span>
+            </div>
+          </div>
+          <div className="mt-3">
+            <div className="text-2xl sm:text-3xl font-bold font-headline text-on-surface font-mono">44</div>
+            <div className="text-[11px] text-on-surface-variant mt-1">26 active</div>
+          </div>
+        </div>
+
+        {/* 2. Active Members */}
+        <div
+          onClick={() => setActiveScreen('members')}
+          className="bg-surface-container-low p-4 sm:p-5 rounded-2xl border border-outline-variant/30 flex flex-col justify-between cursor-pointer hover:border-emerald-500/40 transition-all group shadow-xs"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-on-surface-variant font-medium">Active Members</span>
+            <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+              <span className="material-symbols-outlined text-[18px]">person_check</span>
+            </div>
+          </div>
+          <div className="mt-3">
+            <div className="text-2xl sm:text-3xl font-bold font-headline text-on-surface font-mono">26</div>
+            <div className="text-[11px] text-on-surface-variant mt-1">currently in good standing</div>
+          </div>
+        </div>
+
+        {/* 3. Expiring Soon */}
+        <div
+          onClick={() => setActiveScreen('members')}
+          className="bg-surface-container-low p-4 sm:p-5 rounded-2xl border border-outline-variant/30 flex flex-col justify-between cursor-pointer hover:border-amber-500/40 transition-all group shadow-xs"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-on-surface-variant font-medium">Expiring Soon</span>
+            <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+              <span className="material-symbols-outlined text-[18px]">schedule</span>
+            </div>
+          </div>
+          <div className="mt-3">
+            <div className="text-2xl sm:text-3xl font-bold font-headline text-on-surface font-mono">6</div>
+            <div className="text-[11px] text-on-surface-variant mt-1">within 7 days</div>
+          </div>
+        </div>
+
+        {/* 4. Expired */}
+        <div
+          onClick={() => setActiveScreen('members')}
+          className="bg-surface-container-low p-4 sm:p-5 rounded-2xl border border-outline-variant/30 flex flex-col justify-between cursor-pointer hover:border-red-500/40 transition-all group shadow-xs"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-on-surface-variant font-medium">Expired</span>
+            <div className="w-8 h-8 rounded-xl bg-red-500/10 text-red-500 flex items-center justify-center shrink-0">
+              <span className="material-symbols-outlined text-[18px]">warning</span>
+            </div>
+          </div>
+          <div className="mt-3">
+            <div className="text-2xl sm:text-3xl font-bold font-headline text-red-500 font-mono">7</div>
+            <div className="text-[11px] text-on-surface-variant mt-1">need renewal</div>
+          </div>
+        </div>
+
+        {/* 5. Today's Check-ins */}
+        <div
+          onClick={() => setActiveScreen('attendance')}
+          className="bg-surface-container-low p-4 sm:p-5 rounded-2xl border border-outline-variant/30 flex flex-col justify-between cursor-pointer hover:border-blue-500/40 transition-all group shadow-xs"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-on-surface-variant font-medium">Today's Check-ins</span>
+            <div className="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center shrink-0">
+              <span className="material-symbols-outlined text-[18px]">event</span>
+            </div>
+          </div>
+          <div className="mt-3">
+            <div className="text-2xl sm:text-3xl font-bold font-headline text-on-surface font-mono">{todayAttendanceCount}</div>
+            <div className="text-[11px] text-on-surface-variant mt-1">as of 12:37 AM</div>
+          </div>
+        </div>
+
+        {/* 6. Monthly Revenue */}
+        <div
+          onClick={() => setActiveScreen('payments')}
+          className="bg-surface-container-low p-4 sm:p-5 rounded-2xl border border-outline-variant/30 flex flex-col justify-between cursor-pointer hover:border-emerald-500/40 transition-all group shadow-xs"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-on-surface-variant font-medium">Monthly Revenue</span>
+            <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+              <span className="material-symbols-outlined text-[18px]">attach_money</span>
+            </div>
+          </div>
+          <div className="mt-3">
+            <div className="text-2xl sm:text-3xl font-bold font-headline text-on-surface font-mono">$456.00</div>
+            <div className="text-[11px] text-red-500 font-mono mt-1">▼ 19% vs last month</div>
+          </div>
+        </div>
+
+        {/* 7. Monthly Expenses */}
+        <div
+          onClick={() => setActiveScreen('expenses')}
+          className="bg-surface-container-low p-4 sm:p-5 rounded-2xl border border-outline-variant/30 flex flex-col justify-between cursor-pointer hover:border-amber-500/40 transition-all group shadow-xs"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-on-surface-variant font-medium">Monthly Expenses</span>
+            <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+              <span className="material-symbols-outlined text-[18px]">receipt_long</span>
+            </div>
+          </div>
+          <div className="mt-3">
+            <div className="text-2xl sm:text-3xl font-bold font-headline text-on-surface font-mono">$6,494.00</div>
+            <div className="text-[11px] text-on-surface-variant mt-1">Jul 2026</div>
+          </div>
+        </div>
+
+        {/* 8. Monthly Profit */}
+        <div
+          onClick={() => setActiveScreen('analytics')}
+          className="bg-surface-container-low p-4 sm:p-5 rounded-2xl border border-outline-variant/30 flex flex-col justify-between cursor-pointer hover:border-red-500/40 transition-all group shadow-xs"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-on-surface-variant font-medium">Monthly Profit</span>
+            <div className="w-8 h-8 rounded-xl bg-red-500/10 text-red-500 flex items-center justify-center shrink-0">
+              <span className="material-symbols-outlined text-[18px]">trending_down</span>
+            </div>
+          </div>
+          <div className="mt-3">
+            <div className="text-2xl sm:text-3xl font-bold font-headline text-red-500 font-mono">-$6,038.00</div>
+            <div className="text-[11px] text-on-surface-variant mt-1">revenue - expenses</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Alerts & Reminders Container matching Image 1 */}
+      <div className="bg-surface-container-low p-5 rounded-2xl border border-outline-variant/30 space-y-3">
+        <div className="flex items-center gap-2 text-xs font-semibold text-on-surface">
+          <span className="material-symbols-outlined text-[18px] text-primary">notifications_active</span>
+          <span>Alerts &amp; reminders</span>
+        </div>
+
+        <div className="space-y-2 text-xs">
+          <div className="flex items-center justify-between p-3 rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-700 dark:text-amber-300">
+            <div className="flex items-center gap-2.5">
+              <span className="material-symbols-outlined text-[18px] text-amber-500 shrink-0">schedule</span>
+              <span>6 memberships are expiring within 7 days.</span>
+            </div>
+            <button
+              onClick={() => setActiveScreen('members')}
+              className="font-semibold underline hover:opacity-80 shrink-0 text-[11px]"
+            >
+              Review &amp; renew
+            </button>
+          </div>
+
+          <div className="flex items-center justify-between p-3 rounded-xl bg-red-500/10 border border-red-500/25 text-red-700 dark:text-red-300">
+            <div className="flex items-center gap-2.5">
+              <span className="material-symbols-outlined text-[18px] text-red-500 shrink-0">error</span>
+              <span>7 memberships have expired.</span>
+            </div>
+            <button
+              onClick={() => setActiveScreen('members')}
+              className="font-semibold underline hover:opacity-80 shrink-0 text-[11px]"
+            >
+              See list
+            </button>
+          </div>
         </div>
       </div>
 

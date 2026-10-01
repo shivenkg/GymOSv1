@@ -9,6 +9,10 @@ const __dirname = path.dirname(__filename);
 export async function runMigrations(): Promise<void> {
   console.log('[GymOS Migrations] Starting database migration runner...');
   const pool = getDbPool();
+  if (!pool) {
+    console.warn('[GymOS Migrations] PostgreSQL pool not configured or unavailable. Skipping migrations.');
+    return;
+  }
   const client = await pool.connect();
 
   try {

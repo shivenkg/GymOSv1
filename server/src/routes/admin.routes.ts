@@ -246,26 +246,28 @@ adminRouter.get('/tenants/databases', async (_req: Request, res: Response, next:
     if (config.databaseUrl) {
       try {
         const pool = getDbPool();
-        const dbRes = await pool.query(`
-          SELECT 
-            id, tenant_id as "tenantId", tenant_name as "tenantName",
-            engine, strategy, host, port, database_name as "databaseName",
-            username, connection_uri_masked as "connectionUriMasked",
-            ssl_enabled as "sslEnabled", ssl_mode as "sslMode",
-            pool_min as "poolMin", pool_max as "poolMax",
-            idle_timeout_ms as "idleTimeoutMs", status, latency_ms as "latencyMs",
-            storage_mb as "storageMb", collections_or_tables_count as "collectionsOrTablesCount",
-            features, updated_at as "lastChecked"
-          FROM tenant_databases
-          ORDER BY created_at DESC
-        `);
-        if (dbRes.rows.length > 0) {
-          res.json({
-            success: true,
-            count: dbRes.rows.length,
-            data: dbRes.rows,
-          });
-          return;
+        if (pool) {
+          const dbRes = await pool.query(`
+            SELECT 
+              id, tenant_id as "tenantId", tenant_name as "tenantName",
+              engine, strategy, host, port, database_name as "databaseName",
+              username, connection_uri_masked as "connectionUriMasked",
+              ssl_enabled as "sslEnabled", ssl_mode as "sslMode",
+              pool_min as "poolMin", pool_max as "poolMax",
+              idle_timeout_ms as "idleTimeoutMs", status, latency_ms as "latencyMs",
+              storage_mb as "storageMb", collections_or_tables_count as "collectionsOrTablesCount",
+              features, updated_at as "lastChecked"
+            FROM tenant_databases
+            ORDER BY created_at DESC
+          `);
+          if (dbRes.rows.length > 0) {
+            res.json({
+              success: true,
+              count: dbRes.rows.length,
+              data: dbRes.rows,
+            });
+            return;
+          }
         }
       } catch (err: any) {
         console.warn('[GymOS Admin] Querying tenant_databases table failed, using memory store:', err.message);
@@ -426,7 +428,8 @@ adminRouter.post('/tenants/databases/provision', async (req: Request, res: Respo
     if (config.databaseUrl) {
       try {
         const pool = getDbPool();
-        await pool.query(`
+        if (pool) {
+          await pool.query(`
           CREATE TABLE IF NOT EXISTS tenant_databases (
             id VARCHAR(100) PRIMARY KEY,
             tenant_id VARCHAR(100) NOT NULL,
@@ -500,6 +503,7 @@ adminRouter.post('/tenants/databases/provision', async (req: Request, res: Respo
           JSON.stringify(newConfig.features),
         ]);
         console.log(`[GymOS Admin] Successfully registered tenant database in main system DB: ${newConfig.databaseName}`);
+        }
       } catch (dbErr: any) {
         console.warn('[GymOS Admin] System DB persistence warning:', dbErr.message);
       }
@@ -530,7 +534,9 @@ adminRouter.delete('/tenants/databases/:id', async (req: Request, res: Response,
     if (config.databaseUrl) {
       try {
         const pool = getDbPool();
-        await pool.query('DELETE FROM tenant_databases WHERE id = $1 OR tenant_id = $1', [id]);
+        if (pool) {
+          await pool.query('DELETE FROM tenant_databases WHERE id = $1 OR tenant_id = $1', [id]);
+        }
       } catch (err: any) {
         console.warn('[GymOS Admin] Failed to delete from tenant_databases table:', err.message);
       }

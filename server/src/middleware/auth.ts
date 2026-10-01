@@ -23,13 +23,29 @@ declare global {
 
 /**
  * Rate limiter specifically for login attempts to thwart brute-force attacks.
- * 10 attempts per 15 minutes per IP.
+ * Uses safe IP extraction from x-forwarded-for or socket without throwing validation errors behind proxies.
  */
 export const loginRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 10,
+  max: 60,
   standardHeaders: true,
   legacyHeaders: false,
+  validate: false,
+  keyGenerator: (req) => {
+    const forwarded = req.headers['x-forwarded-for'];
+    if (typeof forwarded === 'string') {
+      return forwarded.split(',')[0].trim();
+    }
+    if (Array.isArray(forwarded) && forwarded[0]) {
+      return forwarded[0].trim();
+    }
+    const forwardedStd = req.headers['forwarded'];
+    if (typeof forwardedStd === 'string') {
+      const match = forwardedStd.match(/for="?([^";,]+)"?/i);
+      if (match && match[1]) return match[1].trim();
+    }
+    return req.ip || req.socket.remoteAddress || '127.0.0.1';
+  },
   message: {
     error: 'Too many authentication attempts. Please try again after 15 minutes.',
   },

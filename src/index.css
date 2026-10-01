@@ -46,16 +46,16 @@
 
 :root {
   /* Clean, high-contrast, modern Light theme */
-  --bg-canvas: #bcc9d6ce;
-  --bg-surface: #cfd0c2;
-  --bg-surface-dim: #d2d5c7;
-  --bg-surface-bright: #eeefea;
-  --bg-surface-variant: #e2e8f0c7;
-  --bg-surface-container-lowest: #dadcbcb9;
+  --bg-canvas: #f8fafc;
+  --bg-surface: #ffffff;
+  --bg-surface-dim: #f1f5f9;
+  --bg-surface-bright: #ffffff;
+  --bg-surface-variant: #f1f5f9;
+  --bg-surface-container-lowest: #ffffff;
   --bg-surface-container-low: #f8fafc;
-  --bg-surface-container: #f1f5f9;
-  --bg-surface-container-high: #e2e8f0;
-  --bg-surface-container-highest: #cbd5e1;
+  --bg-surface-container: #ffffff;
+  --bg-surface-container-high: #f1f5f9;
+  --bg-surface-container-highest: #e2e8f0;
 
   --txt-on-background: #0f172a;
   --txt-on-surface: #0f172a;
@@ -63,29 +63,29 @@
   --txt-inverse-surface: #0f172a;
   --txt-inverse-on-surface: #ffffff;
 
-  --c-primary: #0284c7;
-  --c-primary-fixed: #e0f2fe;
-  --c-primary-fixed-dim: #0284c7;
-  --c-primary-container: #bae6fd;
+  --c-primary: #e50914;
+  --c-primary-fixed: #fee2e2;
+  --c-primary-fixed-dim: #ef4444;
+  --c-primary-container: #fecdd3;
   --c-on-primary: #ffffff;
-  --c-on-primary-container: #0369a1;
+  --c-on-primary-container: #9f1239;
 
-  --c-secondary: #0d9488;
-  --c-secondary-container: #ccfbf1;
+  --c-secondary: #0284c7;
+  --c-secondary-container: #e0f2fe;
   --c-on-secondary: #ffffff;
 
   --c-tertiary: #7c3aed;
   --c-tertiary-container: #ede9fe;
-  --c-on-tertiary: #d0d1a7;
+  --c-on-tertiary: #ffffff;
 
   --c-error: #ef4444;
   --c-error-container: #fee2e2;
-  --c-on-error: #d5d7c3;
+  --c-on-error: #ffffff;
 
-  --c-outline: #94a3b8;
+  --c-outline: #cbd5e1;
   --c-outline-variant: #e2e8f0;
 
-  --body-bg: linear-gradient(135deg, #e0f2fe 0%, #d3d3c4 100%);
+  --body-bg: #f8fafc;
 }
 
 html.dark,
@@ -278,8 +278,50 @@ html.dark,
   animation: gymLaserSweep 6s ease-in-out infinite;
 }
 
-.animate-barbell-float {
-  animation: barbellFloat 5s ease-in-out infinite;
+@keyframes radarScan {
+  0% {
+    top: 0%;
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    top: 96%;
+    opacity: 0.3;
+  }
+}
+
+@keyframes floatSlow {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes shimmerSlide {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-radar-scan {
+  animation: radarScan 2s ease-in-out infinite;
+}
+
+.animate-float-slow {
+  animation: floatSlow 4s ease-in-out infinite;
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0) 100%);
+  background-size: 200% 100%;
+  animation: shimmerSlide 2.5s infinite;
 }
 
 html {

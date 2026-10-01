@@ -300,12 +300,14 @@ export const PaymentsView: React.FC = () => {
 
             <div className="text-center pb-4 border-b border-outline-variant/30 mb-4">
               <span className="text-xs uppercase font-bold text-primary font-headline tracking-widest">
-                GymOS Official Receipt
+                Gymify Tax Invoice &amp; GST Receipt
               </span>
               <h3 className="text-2xl font-headline font-bold text-on-surface mt-1 font-mono">
                 {selectedInvoice.invoiceNumber}
               </h3>
-              <div className="text-xs text-on-surface-variant mt-0.5">{selectedInvoice.dateTimeFormatted}</div>
+              <div className="text-[11px] text-on-surface-variant mt-0.5">
+                GSTIN: 23AAGCV9820K1ZX • SAC: 999723 • {selectedInvoice.dateTimeFormatted}
+              </div>
             </div>
 
             <div className="space-y-2.5 text-xs bg-surface-container p-4 rounded-xl mb-4">
@@ -318,7 +320,7 @@ export const PaymentsView: React.FC = () => {
                 <span className="font-mono text-on-surface">{selectedInvoice.memberCode}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-on-surface-variant">Description</span>
+                <span className="text-on-surface-variant">Service / Plan</span>
                 <span className="text-on-surface">{selectedInvoice.planOrDescription}</span>
               </div>
               <div className="flex justify-between">
@@ -326,16 +328,42 @@ export const PaymentsView: React.FC = () => {
                 <span className="font-semibold text-primary">{selectedInvoice.method}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-on-surface-variant">Status</span>
-                <span className="font-semibold text-primary">{selectedInvoice.status}</span>
+                <span className="text-on-surface-variant">Payment Status</span>
+                <span className="font-semibold text-emerald-400">{selectedInvoice.status}</span>
               </div>
-              <div className="pt-2 border-t border-outline-variant/30 flex justify-between text-sm">
-                <span className="font-bold text-on-surface">Total Charged</span>
-                <span className="font-mono font-bold text-primary">₹{selectedInvoice.amount.toLocaleString('en-IN')}</span>
+
+              {/* GST 18% Itemized Breakdown */}
+              <div className="pt-2 border-t border-outline-variant/30 space-y-1.5 font-mono text-[11px]">
+                <div className="flex justify-between text-on-surface-variant">
+                  <span>Taxable Value (Base)</span>
+                  <span>₹{Math.round(selectedInvoice.amount / 1.18).toLocaleString('en-IN')}</span>
+                </div>
+                <div className="flex justify-between text-on-surface-variant">
+                  <span>CGST (9.0%)</span>
+                  <span>₹{Math.round((selectedInvoice.amount / 1.18) * 0.09).toLocaleString('en-IN')}</span>
+                </div>
+                <div className="flex justify-between text-on-surface-variant">
+                  <span>SGST (9.0%)</span>
+                  <span>₹{Math.round((selectedInvoice.amount / 1.18) * 0.09).toLocaleString('en-IN')}</span>
+                </div>
+                <div className="pt-1.5 border-t border-outline-variant/30 flex justify-between text-sm font-bold">
+                  <span className="text-on-surface">Total Gross Amount</span>
+                  <span className="text-[#e50914] font-headline">₹{selectedInvoice.amount.toLocaleString('en-IN')}</span>
+                </div>
               </div>
             </div>
 
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2">
+              <button
+                onClick={() => {
+                  showToast('WhatsApp Sent', `GST Tax invoice PDF sent to ${selectedInvoice.memberName} via WhatsApp.`, 'success');
+                  setSelectedInvoice(null);
+                }}
+                className="flex-1 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs transition-colors flex items-center justify-center gap-1.5"
+              >
+                <span className="material-symbols-outlined text-[16px]">chat</span>
+                <span>Send WhatsApp</span>
+              </button>
               <button
                 onClick={() => {
                   showToast('Print Job Sent', 'Sending thermal receipt to counter printer...', 'success');

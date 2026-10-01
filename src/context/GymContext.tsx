@@ -23,7 +23,12 @@ import {
   UserRoleAssignment,
   RBACPermission,
   TenantDatabaseConfig,
-  GoogleSheetIntegration
+  GoogleSheetIntegration,
+  Expense,
+  Complaint,
+  Announcement,
+  WorkoutPlan,
+  DietPlan
 } from '../types';
 import {
   BRANCHES,
@@ -37,7 +42,12 @@ import {
   INITIAL_STAFF,
   INITIAL_STAFF_FEED,
   INITIAL_INVOICES,
-  PENDING_PAYMENTS_LIST
+  PENDING_PAYMENTS_LIST,
+  INITIAL_EXPENSES,
+  INITIAL_COMPLAINTS,
+  INITIAL_ANNOUNCEMENTS,
+  INITIAL_WORKOUT_PLANS,
+  INITIAL_DIET_PLANS
 } from '../data/mockData';
 import {
   INITIAL_SAAS_PACKAGES,
@@ -187,6 +197,41 @@ interface GymContextType {
   addInvoice: (data: { memberName: string; planOrDescription: string; amount: number; method: Invoice['method']; status?: Invoice['status'] }) => void;
   recordFeePayment: (payment: { memberId?: string; memberName: string; amount: number; method: string; upiRef?: string; planName?: string }) => Promise<void>;
 
+  // Expenses & Operating Costs
+  expenses: Expense[];
+  addExpense: (expense: Omit<Expense, 'id'>) => void;
+  deleteExpense: (id: string) => void;
+
+  // Complaints & Service Desk
+  complaints: Complaint[];
+  addComplaint: (c: {
+    memberId?: string;
+    memberName: string;
+    memberPhone: string;
+    category: Complaint['category'];
+    subject: string;
+    description: string;
+    priority: Complaint['priority'];
+    assignedTo?: string;
+  }) => void;
+  updateComplaintStatus: (id: string, status: Complaint['status'], resolutionNote?: string) => void;
+
+  // Announcements & Broadcasts
+  announcements: Announcement[];
+  addAnnouncement: (a: {
+    title: string;
+    category: Announcement['category'];
+    content: string;
+    targetAudience: Announcement['targetAudience'];
+    sentViaWhatsApp: boolean;
+  }) => void;
+
+  // Workout & Diet Plan Builder
+  workoutPlans: WorkoutPlan[];
+  dietPlans: DietPlan[];
+  assignWorkoutPlan: (planId: string, memberName: string) => void;
+  assignDietPlan: (dietId: string, memberName: string) => void;
+
   // Global Modals & Notifications
   activeModal: string | null;
   modalPayload: any;
@@ -263,17 +308,23 @@ export const GymProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     );
   };
 
-  const [activeScreen, setActiveScreenRaw] = useState<ScreenId>('login');
+  const [activeScreen, setActiveScreenRaw] = useState<ScreenId>('landing');
 
   const setActiveScreen = (screen: ScreenId) => {
     if ((screen === 'super-admin' || screen === 'system-settings') && currentUser?.role !== 'superadmin') {
       showToast('Access Restricted', 'Super Admin interface is strictly restricted to platform superadministrators.', 'error');
       return;
     }
-    if (screen === 'landing' && currentUser && currentUser.role !== 'superadmin') {
-      showToast('Showcase Restricted', 'Product showcase is exclusively available to SuperAdmin.', 'info');
-      setActiveScreenRaw('dashboard');
-      return;
+    // If navigating to an operational screen while not logged in, auto-authenticate as Club Director demo
+    if (screen !== 'login' && screen !== 'landing' && !currentUser) {
+      setCurrentUser({
+        id: 'usr-demo-director',
+        username: 'director@ironlineclub.com',
+        name: 'Marcus Bell',
+        role: 'director',
+        email: 'director@ironlineclub.com',
+        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
+      });
     }
     setActiveScreenRaw(screen);
   };
@@ -301,9 +352,155 @@ export const GymProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   // Entities state
   const [members, setMembers] = useState<Member[]>(INITIAL_MEMBERS);
   const [invoices, setInvoices] = useState<Invoice[]>(INITIAL_INVOICES);
+  const [expenses, setExpenses] = useState<Expense[]>(() => {
+    try {
+      const saved = localStorage.getItem('gymflow_expenses');
+      return saved ? JSON.parse(saved) : INITIAL_EXPENSES;
+    } catch {
+      return INITIAL_EXPENSES;
+    }
+  });
+
+  const addExpense = (expenseData: Omit<Expense, 'id'>) => {
+    const newExp: Expense = {
+      ...expenseData,
+      id: `exp-${Date.now()}`,
+      ref: expenseData.ref || `EXP-${String(expenses.length + 20).padStart(4, '0')}`,
+    };
+    setExpenses(prev => {
+      const updated = [newExp, ...prev];
+      try { localStorage.setItem('gymflow_expenses', JSON.stringify(updated)); } catch {}
+      return updated;
+    });
+    showToast('Expense Recorded', `Added ${newExp.ref} - ${newExp.description} ($${newExp.amount.toFixed(2)})`, 'success');
+  };
+
+  const deleteExpense = (id: string) => {
+    setExpenses(prev => {
+      const updated = prev.filter(e => e.id !== id);
+      try { localStorage.setItem('gymflow_expenses', JSON.stringify(updated)); } catch {}
+      return updated;
+    });
+    showToast('Expense Removed', 'Record has been removed from ledger.', 'info');
+  };
   const [checkInLogs, setCheckInLogs] = useState<CheckInLog[]>(INITIAL_CHECKINS);
   const [leads, setLeads] = useState<Lead[]>(INITIAL_LEADS);
   const [staff, setStaff] = useState<StaffMember[]>(INITIAL_STAFF);
+
+  // Complaints & Maintenance State
+  const [complaints, setComplaints] = useState<Complaint[]>(() => {
+    try {
+      const saved = localStorage.getItem('gymos_complaints');
+      return saved ? JSON.parse(saved) : INITIAL_COMPLAINTS;
+    } catch {
+      return INITIAL_COMPLAINTS;
+    }
+  });
+
+  const addComplaint = (c: {
+    memberId?: string;
+    memberName: string;
+    memberPhone: string;
+    category: Complaint['category'];
+    subject: string;
+    description: string;
+    priority: Complaint['priority'];
+    assignedTo?: string;
+  }) => {
+    const newComplaint: Complaint = {
+      id: `cmp-${Date.now()}`,
+      ticketNumber: `TKT-${Math.floor(1000 + Math.random() * 9000)}`,
+      memberId: c.memberId || `m-${Date.now()}`,
+      memberName: c.memberName,
+      memberPhone: c.memberPhone,
+      category: c.category,
+      subject: c.subject,
+      description: c.description,
+      priority: c.priority,
+      status: 'Open',
+      assignedTo: c.assignedTo || 'Front Desk / Floor Supervisor',
+      createdAt: 'Just now',
+      branchId: currentBranch.id,
+    };
+    setComplaints(prev => {
+      const updated = [newComplaint, ...prev];
+      try { localStorage.setItem('gymos_complaints', JSON.stringify(updated)); } catch {}
+      return updated;
+    });
+    showToast('Ticket Raised', `Ticket #${newComplaint.ticketNumber} created for ${c.memberName}. Assigned to staff.`, 'success');
+  };
+
+  const updateComplaintStatus = (id: string, status: Complaint['status'], resolutionNote?: string) => {
+    setComplaints(prev => {
+      const updated = prev.map(c => {
+        if (c.id === id) {
+          return {
+            ...c,
+            status,
+            resolutionNote: resolutionNote !== undefined ? resolutionNote : c.resolutionNote,
+            resolvedAt: status === 'Resolved' ? 'Just now' : c.resolvedAt,
+          };
+        }
+        return c;
+      });
+      try { localStorage.setItem('gymos_complaints', JSON.stringify(updated)); } catch {}
+      return updated;
+    });
+    showToast('Ticket Updated', `Status changed to ${status}`, 'info');
+  };
+
+  // Announcements & Broadcasts State
+  const [announcements, setAnnouncements] = useState<Announcement[]>(() => {
+    try {
+      const saved = localStorage.getItem('gymos_announcements');
+      return saved ? JSON.parse(saved) : INITIAL_ANNOUNCEMENTS;
+    } catch {
+      return INITIAL_ANNOUNCEMENTS;
+    }
+  });
+
+  const addAnnouncement = (a: {
+    title: string;
+    category: Announcement['category'];
+    content: string;
+    targetAudience: Announcement['targetAudience'];
+    sentViaWhatsApp: boolean;
+  }) => {
+    const newAnn: Announcement = {
+      id: `ann-${Date.now()}`,
+      title: a.title,
+      category: a.category,
+      content: a.content,
+      date: 'Just now',
+      targetAudience: a.targetAudience,
+      sentViaWhatsApp: a.sentViaWhatsApp,
+      author: currentUser?.name || 'Club Director',
+    };
+    setAnnouncements(prev => {
+      const updated = [newAnn, ...prev];
+      try { localStorage.setItem('gymos_announcements', JSON.stringify(updated)); } catch {}
+      return updated;
+    });
+    showToast(
+      'Announcement Broadcasted',
+      a.sentViaWhatsApp ? `Dispatched via WhatsApp to ${a.targetAudience}` : `Published to ${a.targetAudience} in Member App`,
+      'success'
+    );
+  };
+
+  // Workout & Diet Plans State
+  const [workoutPlans, setWorkoutPlans] = useState<WorkoutPlan[]>(INITIAL_WORKOUT_PLANS);
+  const [dietPlans, setDietPlans] = useState<DietPlan[]>(INITIAL_DIET_PLANS);
+
+  const assignWorkoutPlan = (planId: string, memberName: string) => {
+    setWorkoutPlans(prev => prev.map(p => p.id === planId ? { ...p, assignedMembersCount: p.assignedMembersCount + 1 } : p));
+    showToast('Workout Assigned', `Workout routine assigned to ${memberName} in their Member App!`, 'success');
+  };
+
+  const assignDietPlan = (dietId: string, memberName: string) => {
+    setDietPlans(prev => prev.map(d => d.id === dietId ? { ...d, assignedMembersCount: d.assignedMembersCount + 1 } : d));
+    showToast('Diet Chart Sent', `Indian Macro Diet chart sent to ${memberName} via Member App & WhatsApp!`, 'success');
+  };
 
   const [saasPackages, setSaasPackages] = useState<SaaSPackage[]>(INITIAL_SAAS_PACKAGES);
   const [saasLicenses, setSaasLicenses] = useState<SaaSLicense[]>(INITIAL_SAAS_LICENSES);
@@ -1672,6 +1869,18 @@ export const GymProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         markPendingPaid,
         addInvoice,
         recordFeePayment,
+        expenses,
+        addExpense,
+        deleteExpense,
+        complaints,
+        addComplaint,
+        updateComplaintStatus,
+        announcements,
+        addAnnouncement,
+        workoutPlans,
+        dietPlans,
+        assignWorkoutPlan,
+        assignDietPlan,
         activeModal,
         modalPayload,
         openModal,

@@ -1,35 +1,44 @@
 import pg from 'pg';
-import { config, validateDatabaseConfig } from './env.ts';
+import { config, validateDatabaseConfig, isPostgresConfigured } from './env.ts';
 
 const { Pool, Client } = pg;
 
 let pool: pg.Pool | null = null;
 
 /**
- * Returns the singleton pg.Pool instance.
- * Fails fast with a clear error message if DATABASE_URL is missing.
+ * Returns the singleton pg.Pool instance if a valid PostgreSQL DATABASE_URL is configured.
+ * Returns null if DATABASE_URL is missing or set to a non-PostgreSQL database (e.g. MongoDB).
  */
-export function getDbPool(): pg.Pool {
+export function getDbPool(): pg.Pool | null {
+  if (!isPostgresConfigured()) {
+    return null;
+  }
+
   if (pool) {
     return pool;
   }
 
-  const databaseUrl = validateDatabaseConfig();
+  try {
+    const databaseUrl = validateDatabaseConfig();
 
-  pool = new Pool({
-    connectionString: databaseUrl,
-    min: config.dbPoolMin,
-    max: config.dbPoolMax,
-    ssl: config.dbSsl ? { rejectUnauthorized: false } : false,
-    idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 5000,
-  });
+    pool = new Pool({
+      connectionString: databaseUrl,
+      min: config.dbPoolMin,
+      max: config.dbPoolMax,
+      ssl: config.dbSsl ? { rejectUnauthorized: false } : false,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 5000,
+    });
 
-  pool.on('error', (err) => {
-    console.error('[GymOS DB Pool] Unexpected error on idle PostgreSQL client:', err.message);
-  });
+    pool.on('error', (err) => {
+      console.error('[GymOS DB Pool] Unexpected error on idle PostgreSQL client:', err.message);
+    });
 
-  return pool;
+    return pool;
+  } catch (err: any) {
+    console.warn('[GymOS DB Pool] Failed to initialize pool:', err.message);
+    return null;
+  }
 }
 
 /**
@@ -40,21 +49,33 @@ export async function query<T extends pg.QueryResultRow = any>(
   params?: any[]
 ): Promise<pg.QueryResult<T>> {
   const p = getDbPool();
+  if (!p) {
+    throw new Error('PostgreSQL database pool is not available.');
+  }
   return p.query<T>(text, params);
 }
 
 /**
  * Checks database connectivity for health check endpoints.
- * Returns true if DB is responsive, false otherwise.
+ * Returns true if DB is responsive, false otherwise without crashing.
  */
 export async function checkDbConnection(): Promise<{ healthy: boolean; latencyMs?: number; error?: string }> {
-  if (!config.databaseUrl) {
-    return { healthy: false, error: 'DATABASE_URL is not configured' };
+  if (!isPostgresConfigured()) {
+    const isMongo = config.databaseUrl && config.databaseUrl.trim().toLowerCase().startsWith('mongodb');
+    return {
+      healthy: false,
+      error: isMongo
+        ? 'DATABASE_URL is set to MongoDB, but GymOS requires PostgreSQL (operating in standalone fallback mode)'
+        : 'DATABASE_URL is not configured (operating in standalone fallback mode)',
+    };
   }
 
   const start = Date.now();
   try {
     const p = getDbPool();
+    if (!p) {
+      return { healthy: false, error: 'Database pool unavailable' };
+    }
     await p.query('SELECT 1 AS health_check');
     return { healthy: true, latencyMs: Date.now() - start };
   } catch (err: any) {

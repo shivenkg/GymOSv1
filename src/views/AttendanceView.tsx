@@ -11,12 +11,17 @@ export const AttendanceView: React.FC = () => {
     lastScannedMember,
     isTerminalLocked,
     toggleTerminalLock,
-    setActiveScreen
+    setActiveScreen,
+    members,
+    checkInMember,
+    showToast,
   } = useGym();
 
   const [searchQuery, setSearchQuery] = useState('');
+  const [quickCheckinSearch, setQuickCheckinSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState<'All' | 'Allowed' | 'Access Denied'>('All');
   const [isScanningActive, setIsScanningActive] = useState(false);
+  const [localCheckedInIds, setLocalCheckedInIds] = useState<Record<string, boolean>>({});
 
   const handleSimulateScan = () => {
     setIsScanningActive(true);
@@ -25,6 +30,51 @@ export const AttendanceView: React.FC = () => {
       setIsScanningActive(false);
     }, 600);
   };
+
+  const handleQuickCheckIn = async (memberId: string, memberName: string) => {
+    const isCurrentlyIn = !!localCheckedInIds[memberId];
+    if (isCurrentlyIn) {
+      setLocalCheckedInIds(prev => ({ ...prev, [memberId]: false }));
+      showToast('Checked Out', `${memberName} logged as leaving facility.`, 'info');
+      return;
+    }
+
+    const success = await checkInMember(memberId, 'Manual Entry');
+    if (success) {
+      setLocalCheckedInIds(prev => ({ ...prev, [memberId]: true }));
+    }
+  };
+
+  const handleExportCSV = () => {
+    const headers = ['MEMBER', 'CODE', 'PLAN', 'TIME', 'METHOD', 'STATUS', 'TERMINAL'];
+    const rows = filteredLogs.map(l => [
+      `"${l.memberName}"`,
+      l.memberCode,
+      `"${l.plan}"`,
+      `"${l.timeFormatted}"`,
+      l.method,
+      l.status,
+      l.terminal
+    ]);
+    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `attendance_logs_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showToast('Attendance Exported', `Generated CSV with ${filteredLogs.length} records.`, 'success');
+  };
+
+  // Quick check-in candidate members
+  const quickCheckinCandidates = members.filter(m => {
+    if (!quickCheckinSearch.trim()) return true;
+    const q = quickCheckinSearch.toLowerCase();
+    return m.name.toLowerCase().includes(q) || m.memberCode.toLowerCase().includes(q) || m.plan.toLowerCase().includes(q);
+  }).slice(0, 8);
+
+  const todayCount = checkInLogs.filter(l => l.status === 'Allowed').length;
 
   const filteredLogs = checkInLogs.filter((log) => {
     const matchesSearch =
@@ -83,6 +133,121 @@ export const AttendanceView: React.FC = () => {
             <span className="material-symbols-outlined text-[15px]">event_available</span>
             <span>Classes &amp; PT</span>
           </button>
+        </div>
+      </div>
+
+      {/* Main Title & Action Bar matching Image 3 */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-headline font-bold text-on-surface tracking-tight">Attendance</h1>
+          <p className="text-xs sm:text-sm text-on-surface-variant mt-0.5">
+            Check members in and review visit history.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2.5">
+          <button
+            onClick={handleExportCSV}
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-surface-container-low hover:bg-surface-container-high border border-outline-variant/30 rounded-xl text-xs font-semibold text-on-surface transition-all shadow-xs cursor-pointer"
+          >
+            <span className="material-symbols-outlined text-[16px]">download</span>
+            <span>Export CSV</span>
+          </button>
+        </div>
+      </div>
+
+      {/* 4 Stats Cards matching Image 3 */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 text-center">
+        <div className="bg-surface-container-low p-4 rounded-2xl border border-outline-variant/30">
+          <div className="text-2xl sm:text-3xl font-bold font-mono text-on-surface">
+            {todayCount > 0 ? todayCount : liveOccupancy}
+          </div>
+          <div className="text-[11px] text-on-surface-variant mt-1 font-medium">Today</div>
+        </div>
+
+        <div className="bg-surface-container-low p-4 rounded-2xl border border-outline-variant/30">
+          <div className="text-2xl sm:text-3xl font-bold font-mono text-on-surface">67</div>
+          <div className="text-[11px] text-on-surface-variant mt-1 font-medium">Last 7 days</div>
+        </div>
+
+        <div className="bg-surface-container-low p-4 rounded-2xl border border-outline-variant/30">
+          <div className="text-2xl sm:text-3xl font-bold font-mono text-on-surface">98</div>
+          <div className="text-[11px] text-on-surface-variant mt-1 font-medium">Jul 2026</div>
+        </div>
+
+        <div className="bg-surface-container-low p-4 rounded-2xl border border-outline-variant/30">
+          <div className="text-2xl sm:text-3xl font-bold font-mono text-on-surface">5.3</div>
+          <div className="text-[11px] text-on-surface-variant mt-1 font-medium">Avg / day (30d)</div>
+        </div>
+      </div>
+
+      {/* Front Desk — Quick Check-in matching Image 3 */}
+      <div className="bg-surface-container rounded-2xl p-5 border border-outline-variant/30 space-y-4 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-outline-variant/20 pb-3">
+          <div className="flex items-center gap-2">
+            <span className="material-symbols-outlined text-[20px] text-emerald-500">check_circle</span>
+            <h2 className="text-base font-headline font-bold text-on-surface">Front desk — quick check-in</h2>
+          </div>
+
+          <div className="relative min-w-[220px] max-w-xs">
+            <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-on-surface-variant text-[16px]">
+              search
+            </span>
+            <input
+              type="text"
+              value={quickCheckinSearch}
+              onChange={(e) => setQuickCheckinSearch(e.target.value)}
+              placeholder="Search member to check in..."
+              className="w-full bg-surface-container-low pl-8 pr-3 py-1.5 rounded-xl text-xs text-on-surface placeholder:text-on-surface-variant/60 border border-outline-variant/30 focus:outline-none focus:ring-1 focus:ring-primary"
+            />
+          </div>
+        </div>
+
+        {/* Member Check-in Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {quickCheckinCandidates.map((member) => {
+            const isCheckedIn = !!localCheckedInIds[member.id];
+            const initials = member.name.split(' ').map(n => n[0]).join('');
+            const isExpiring = member.status === 'pending' || member.status === 'expired';
+
+            return (
+              <div
+                key={member.id}
+                className="bg-surface-container-low p-3 rounded-xl border border-outline-variant/20 flex items-center justify-between gap-3 text-xs hover:border-primary/30 transition-all"
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-8 h-8 rounded-full bg-primary/20 text-primary font-bold flex items-center justify-center text-xs shrink-0 font-mono">
+                    {initials}
+                  </div>
+                  <div className="truncate">
+                    <div className="font-semibold text-on-surface truncate">{member.name}</div>
+                    <div className="text-[10px] text-on-surface-variant font-mono flex items-center gap-1.5">
+                      <span>{member.memberCode}</span>
+                      <span>•</span>
+                      <span className={`${
+                        member.status === 'active' ? 'text-emerald-500' :
+                        member.status === 'frozen' ? 'text-blue-500' : 'text-amber-500'
+                      }`}>
+                        {member.status === 'active' ? 'Active' : member.status === 'frozen' ? 'Frozen' : 'Expiring Soon'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => handleQuickCheckIn(member.id, member.name)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all shrink-0 cursor-pointer ${
+                    isCheckedIn
+                      ? 'bg-emerald-500 text-white shadow-xs'
+                      : 'bg-primary text-on-primary hover:opacity-90 shadow-sm shadow-primary/20'
+                  }`}
+                >
+                  <span className="font-bold">✓</span>
+                  <span>{isCheckedIn ? 'Inside' : 'In'}</span>
+                </button>
+              </div>
+            );
+          })}
         </div>
       </div>
 

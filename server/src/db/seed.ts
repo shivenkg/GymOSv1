@@ -5,6 +5,10 @@ import { getDbPool } from '../config/db.ts';
 export async function seedDatabase(): Promise<void> {
   console.log('[GymOS Seed] Connecting to database for seeding...');
   const pool = getDbPool();
+  if (!pool) {
+    console.warn('[GymOS Seed] PostgreSQL pool not configured or unavailable. Skipping database seeding.');
+    return;
+  }
   const client = await pool.connect();
 
   try {

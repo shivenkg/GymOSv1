@@ -10,6 +10,7 @@ const __dirname = path.dirname(__filename);
 
 async function startServer() {
   const app = createExpressApp();
+  app.set('trust proxy', true);
   const port = config.port || 3000;
   const isProd = process.env.NODE_ENV === 'production';
 
@@ -37,11 +38,11 @@ async function startServer() {
   }
 
   app.listen(port, '0.0.0.0', () => {
-    console.log(`[GymOS] Server ready on http://0.0.0.0:${port} (${isProd ? 'production' : 'development'})`);
+    console.log(`[Gymify] Server ready on http://0.0.0.0:${port} (${isProd ? 'production' : 'development'})`);
   });
 }
 
 startServer().catch((err) => {
-  console.error('[GymOS] Failed to start unified server:', err);
+  console.error('[Gymify] Failed to start unified server:', err);
   process.exit(1);
 });

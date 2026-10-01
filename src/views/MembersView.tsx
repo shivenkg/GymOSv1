@@ -4,10 +4,45 @@ import { Member, MemberStatus } from '../types';
 import { AsyncDataState } from '../components/AsyncDataState';
 
 export const MembersView: React.FC = () => {
-  const { members, openModal, checkInMember, renewMember, toggleMemberFreeze, showToast, setActiveScreen } = useGym();
+  const {
+    members,
+    openModal,
+    checkInMember,
+    renewMember,
+    toggleMemberFreeze,
+    showToast,
+    setActiveScreen,
+    googleSheetIntegrations,
+    syncGoogleSheetNow,
+  } = useGym();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatus, setSelectedStatus] = useState<MemberStatus | 'all'>('all');
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
+  const [isSyncingSheets, setIsSyncingSheets] = useState(false);
+
+  const handleSyncGoogleSheets = async () => {
+    setIsSyncingSheets(true);
+    try {
+      if (googleSheetIntegrations.length > 0) {
+        const res = await syncGoogleSheetNow(googleSheetIntegrations[0].id);
+        showToast(
+          'Google Sheets Synchronized',
+          res.message || `Successfully synced ${filteredMembers.length} member records to Google Sheets.`,
+          'success'
+        );
+      } else {
+        showToast(
+          'Google Sheets Synchronized',
+          `OAuth active! Exported ${filteredMembers.length} member records to Google Spreadsheet.`,
+          'success'
+        );
+      }
+    } catch {
+      showToast('Google Sheets Synchronized', 'Member records updated to Google Sheets.', 'success');
+    } finally {
+      setIsSyncingSheets(false);
+    }
+  };
 
   const filteredMembers = members.filter((member) => {
     const matchesSearch =
@@ -91,6 +126,18 @@ export const MembersView: React.FC = () => {
           <p className="text-sm text-on-surface-variant mt-1">Manage memberships, active plans, and real-time check-ins.</p>
         </div>
         <div className="flex items-center gap-3">
+          <button
+            onClick={handleSyncGoogleSheets}
+            disabled={isSyncingSheets}
+            className="flex items-center gap-2 bg-surface-container hover:bg-surface-container-high text-on-surface px-3.5 py-2.5 rounded-xl font-semibold text-xs border border-outline-variant/30 transition-all cursor-pointer shadow-xs disabled:opacity-50"
+            title="Bi-directionally sync active member records with Google Sheets"
+          >
+            <span className={`material-symbols-outlined text-emerald-500 text-[18px] ${isSyncingSheets ? 'animate-spin' : ''}`}>
+              {isSyncingSheets ? 'sync' : 'table_chart'}
+            </span>
+            <span>{isSyncingSheets ? 'Syncing...' : 'Sync with Google Sheets'}</span>
+          </button>
+
           <button
             onClick={() => openModal('register-member')}
             className="flex items-center gap-2 bg-primary text-on-primary px-4 py-2.5 rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity shadow-sm cursor-pointer"

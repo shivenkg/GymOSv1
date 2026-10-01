@@ -1,7 +1,7 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { getDbPool } from '../config/db.ts';
-import { config } from '../config/env.ts';
+import { config, isPostgresConfigured } from '../config/env.ts';
 import { AuthUser } from '../middleware/auth.ts';
 
 export class AuthError extends Error {
@@ -136,11 +136,12 @@ const DEMO_USERS: DemoUserAccount[] = [
 export async function loginUser(emailOrUsername: string, pass: string): Promise<LoginResult> {
   const cleanIdentifier = emailOrUsername.trim().toLowerCase();
 
-  // 1. Try real PostgreSQL database authentication if DATABASE_URL is configured
-  if (config.databaseUrl && config.databaseUrl.trim() !== '') {
+  // 1. Try real PostgreSQL database authentication if PostgreSQL is configured
+  if (isPostgresConfigured()) {
     try {
       const pool = getDbPool();
-      const userQuery = `
+      if (pool) {
+        const userQuery = `
         SELECT 
           u.id, 
           u.tenant_id, 
@@ -156,52 +157,53 @@ export async function loginUser(emailOrUsername: string, pass: string): Promise<
         LIMIT 1;
       `;
 
-      const { rows } = await pool.query(userQuery, [cleanIdentifier]);
-      const user = rows[0];
+        const { rows } = await pool.query(userQuery, [cleanIdentifier]);
+        const user = rows[0];
 
-      if (user) {
-        if (!user.is_active) {
-          throw new AuthError('This user account has been deactivated. Please contact your administrator.', 403);
-        }
+        if (user) {
+          if (!user.is_active) {
+            throw new AuthError('This user account has been deactivated. Please contact your administrator.', 403);
+          }
 
-        const isMatch = await comparePassword(pass, user.password_hash);
-        if (!isMatch) {
-          throw new AuthError('Invalid email or password.', 401);
-        }
+          const isMatch = await comparePassword(pass, user.password_hash);
+          if (!isMatch) {
+            throw new AuthError('Invalid email or password.', 401);
+          }
 
-        // Fetch permissions assigned to this user's role
-        const permQuery = `
+          // Fetch permissions assigned to this user's role
+          const permQuery = `
           SELECT p.code
           FROM permissions p
           INNER JOIN role_permissions rp ON rp.permission_id = p.id
           INNER JOIN users u ON u.role_id = rp.role_id
           WHERE u.id = $1;
         `;
-        const permResult = await pool.query(permQuery, [user.id]);
-        const permissions = permResult.rows.map((r: any) => r.code);
-        const role = user.role_name || 'staff';
+          const permResult = await pool.query(permQuery, [user.id]);
+          const permissions = permResult.rows.map((r: any) => r.code);
+          const role = user.role_name || 'staff';
 
-        const token = generateToken({
-          userId: user.id,
-          tenantId: user.tenant_id,
-          role,
-          email: user.email,
-          fullName: user.full_name,
-          permissions,
-        });
-
-        return {
-          token,
-          user: {
-            id: user.id,
+          const token = generateToken({
+            userId: user.id,
+            tenantId: user.tenant_id,
+            role,
             email: user.email,
             fullName: user.full_name,
-            role,
-            tenantId: user.tenant_id,
-            avatarUrl: user.avatar_url,
-          },
-          permissions,
-        };
+            permissions,
+          });
+
+          return {
+            token,
+            user: {
+              id: user.id,
+              email: user.email,
+              fullName: user.full_name,
+              role,
+              tenantId: user.tenant_id,
+              avatarUrl: user.avatar_url,
+            },
+            permissions,
+          };
+        }
       }
     } catch (err: any) {
       if (err instanceof AuthError) {
@@ -256,9 +258,10 @@ export async function loginUser(emailOrUsername: string, pass: string): Promise<
 }
 
 export async function getUserProfile(userId: string): Promise<AuthUser | null> {
-  if (config.databaseUrl && config.databaseUrl.trim() !== '') {
+  if (isPostgresConfigured()) {
     try {
       const pool = getDbPool();
+      if (!pool) return null;
       const queryText = `
         SELECT 
           u.id, 
