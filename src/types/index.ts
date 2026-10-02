@@ -400,7 +400,13 @@ export interface TenantDatabaseConfig {
   poolMin: number;
   poolMax: number;
   idleTimeoutMs: number;
-  status: 'Connected' | 'Degraded' | 'Provisioning' | 'Offline' | 'Standalone Fallback';
+  status: 'Connected' | 'Degraded' | 'Provisioning' | 'Offline' | 'Standalone Fallback' | 'Attached' | 'Detached' | 'IP Blocked';
+  attachmentStatus: 'attached' | 'detached';
+  isAttached?: boolean;
+  attachedAt?: string;
+  detachedAt?: string;
+  isIpBlocked?: boolean;
+  lastPingError?: string;
   latencyMs: number;
   storageMb: number;
   collectionsOrTablesCount: number;
@@ -412,6 +418,44 @@ export interface TenantDatabaseConfig {
     encryptionAtRest: boolean;
     readReplicas: number;
   };
+  circuitBreaker?: {
+    state: 'CLOSED' | 'OPEN' | 'HALF_OPEN';
+    failoverEnabled: boolean;
+    consecutiveFailures: number;
+    failureThreshold: number;
+    lastTrippedAt?: string;
+    fallbackRoute: 'shared_system_db';
+    lastCanaryCheck?: string;
+  };
+}
+
+export interface HardwareTerminalKey {
+  id: string;
+  name: string;
+  terminalKey: string;
+  tenantId: string;
+  tenantName: string;
+  terminalType: 'turnstile_qr' | 'turnstile_rfid' | 'biometric_fingerprint' | 'facial_recognition_kiosk';
+  locationName: string;
+  gateIdentifier: string;
+  scopes: ('attendance:checkin' | 'access:verify' | 'emergency:unlock')[];
+  status: 'Active' | 'Revoked';
+  createdAt: string;
+  expiresAt: string;
+  lastPingAt: string;
+  lastPingIp?: string;
+  totalPings: number;
+}
+
+export interface JwtSecuritySettings {
+  activeSecret: string;
+  algorithm: 'HS256' | 'HS384' | 'HS512';
+  accessTokenLifetime: string;
+  refreshTokenLifetime: string;
+  hardwareKeyLifetime: string;
+  lastRotatedAt: string;
+  secretEntropyBits: number;
+  requireSignedCookies: boolean;
 }
 
 // ==========================================

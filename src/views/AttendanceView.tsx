@@ -76,13 +76,14 @@ export const AttendanceView: React.FC = () => {
     return m.name.toLowerCase().includes(q) || m.memberCode.toLowerCase().includes(q) || m.plan.toLowerCase().includes(q);
   }).slice(0, 8);
 
-  const todayCount = checkInLogs.filter(l => l.status === 'Allowed').length;
+  const todayCount = checkInLogs.filter(l => l && l.status === 'Allowed').length;
 
   const filteredLogs = checkInLogs.filter((log) => {
+    if (!log) return false;
     const matchesSearch =
-      log.memberName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      log.memberCode.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      log.plan.toLowerCase().includes(searchQuery.toLowerCase());
+      (log.memberName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (log.memberCode || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (log.plan || '').toLowerCase().includes(searchQuery.toLowerCase());
 
     const matchesStatus =
       filterStatus === 'All' ||

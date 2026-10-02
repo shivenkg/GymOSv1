@@ -23,11 +23,12 @@ export const ComplaintsView: React.FC = () => {
   const [assignedStaff, setAssignedStaff] = useState('Front Desk Lead');
 
   const filteredTickets = complaints.filter((t) => {
+    if (!t) return false;
     const matchesSearch =
-      t.ticketNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      t.memberName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      t.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      t.description.toLowerCase().includes(searchQuery.toLowerCase());
+      (t.ticketNumber || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (t.memberName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (t.subject || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (t.description || '').toLowerCase().includes(searchQuery.toLowerCase());
 
     const matchesStatus = filterStatus === 'all' || t.status === filterStatus;
     const matchesCategory = filterCategory === 'all' || t.category === filterCategory;
@@ -35,9 +36,9 @@ export const ComplaintsView: React.FC = () => {
     return matchesSearch && matchesStatus && matchesCategory;
   });
 
-  const openCount = complaints.filter((c) => c.status === 'Open').length;
-  const inProgressCount = complaints.filter((c) => c.status === 'In Progress').length;
-  const resolvedCount = complaints.filter((c) => c.status === 'Resolved').length;
+  const openCount = complaints.filter((c) => c && c.status === 'Open').length;
+  const inProgressCount = complaints.filter((c) => c && c.status === 'In Progress').length;
+  const resolvedCount = complaints.filter((c) => c && c.status === 'Resolved').length;
 
   const handleCreateTicket = (e: React.FormEvent) => {
     e.preventDefault();

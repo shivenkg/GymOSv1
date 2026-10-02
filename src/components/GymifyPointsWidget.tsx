@@ -121,7 +121,7 @@ export const GymifyPointsWidget: React.FC<GymifyPointsWidgetProps> = ({ member }
             <div className="flex items-center gap-1.5">
               <span className="text-xs font-headline font-bold text-on-surface">Gymify Points &amp; Rewards</span>
               <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border ${currentTierStyle.bg} ${currentTierStyle.border}`}>
-                {currentTier.toUpperCase()} TIER
+                {(currentTier || 'BRONZE').toUpperCase()} TIER
               </span>
             </div>
             <p className="text-[11px] text-on-surface-variant">Earn points via daily biometric attendance and member referrals</p>

@@ -18,11 +18,12 @@ export const PaymentsView: React.FC = () => {
   } | null>(null);
 
   const filteredInvoices = invoices.filter((inv) => {
+    if (!inv) return false;
     const matchesSearch =
-      inv.invoiceNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      inv.memberName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      inv.planOrDescription.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      inv.method.toLowerCase().includes(searchQuery.toLowerCase());
+      (inv.invoiceNumber || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (inv.memberName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (inv.planOrDescription || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (inv.method || '').toLowerCase().includes(searchQuery.toLowerCase());
 
     if (activeTab === 'pending') {
       return matchesSearch && (inv.status === 'Pending' || inv.status === 'Overdue');
@@ -31,14 +32,14 @@ export const PaymentsView: React.FC = () => {
       return matchesSearch && inv.status === 'Paid';
     }
     if (activeTab === 'subs') {
-      return matchesSearch && inv.planOrDescription.toLowerCase().includes('annual') || inv.planOrDescription.toLowerCase().includes('monthly');
+      return matchesSearch && ((inv.planOrDescription || '').toLowerCase().includes('annual') || (inv.planOrDescription || '').toLowerCase().includes('monthly'));
     }
     return matchesSearch;
   });
 
   const totalCollected = invoices
-    .filter((i) => i.status === 'Paid')
-    .reduce((acc, curr) => acc + curr.amount, 1845000);
+    .filter((i) => i && i.status === 'Paid')
+    .reduce((acc, curr) => acc + (curr.amount || 0), 1845000);
 
   return (
     <div className="flex flex-col w-full pb-16 space-y-6">

@@ -115,6 +115,7 @@ export const PersistentNotificationBell: React.FC = () => {
     const items: HeaderAlertItem[] = [];
 
     members.forEach((m) => {
+      if (!m) return;
       if (m.status === 'expired') {
         items.push({
           id: `alert-exp-${m.id}`,

@@ -126,9 +126,9 @@ class ApiClient {
       if (!res.ok) return { healthy: false, databaseConnected: false };
       const data = await res.json();
       return {
-        healthy: data.status === 'UP',
-        databaseConnected: data.database?.connected === true,
-        latencyMs: data.database?.latencyMs,
+        healthy: data?.status === 'UP',
+        databaseConnected: data?.database?.connected === true,
+        latencyMs: data?.database?.latencyMs,
       };
     } catch {
       return { healthy: false, databaseConnected: false };

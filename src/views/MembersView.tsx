@@ -5,6 +5,121 @@ import { AsyncDataState } from '../components/AsyncDataState';
 import { UPIFeePaymentModal } from '../components/UPIFeePaymentModal';
 import { GymifyPointsWidget } from '../components/GymifyPointsWidget';
 
+export type SubscriptionFilter = 'all' | 'active' | 'grace_period' | 'expired' | 'frozen' | 'cancelled';
+
+export interface SubscriptionStatusInfo {
+  type: 'active' | 'grace_period' | 'expired' | 'frozen' | 'cancelled' | 'pending';
+  label: string;
+  badgeClass: string;
+  dotClass: string;
+  subtext: string;
+  icon: string;
+  daysRemaining?: number;
+}
+
+export function getMemberSubscriptionStatus(member?: Member | null): SubscriptionStatusInfo {
+  if (!member) {
+    return {
+      type: 'expired',
+      label: 'Inactive',
+      badgeClass: 'bg-surface-variant text-on-surface-variant border-outline-variant/30',
+      dotClass: 'bg-outline',
+      subtext: 'No active profile',
+      icon: 'help',
+    };
+  }
+
+  if (member.status === 'frozen') {
+    return {
+      type: 'frozen',
+      label: 'Frozen',
+      badgeClass: 'bg-sky-500/15 text-sky-400 border-sky-500/30',
+      dotClass: 'bg-sky-400',
+      subtext: 'Account paused',
+      icon: 'pause_circle',
+    };
+  }
+
+  if (member.status === 'cancelled') {
+    return {
+      type: 'cancelled',
+      label: 'Cancelled',
+      badgeClass: 'bg-surface-container-highest text-on-surface-variant border-outline-variant/30',
+      dotClass: 'bg-outline',
+      subtext: 'Subscription terminated',
+      icon: 'cancel',
+    };
+  }
+
+  if (!member.expiryDate) {
+    return {
+      type: 'active',
+      label: 'Active',
+      badgeClass: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
+      dotClass: 'bg-emerald-400',
+      subtext: 'Lifetime / Uncapped',
+      icon: 'verified',
+    };
+  }
+
+  const expiryTimestamp = new Date(member.expiryDate).getTime();
+  const now = Date.now();
+  const diffMs = expiryTimestamp - now;
+  const daysLeft = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+
+  // Expired past the 7-day grace window
+  if (daysLeft < -7 || member?.status === 'expired') {
+    const overdueDays = Math.abs(daysLeft);
+    return {
+      type: 'expired',
+      label: 'Expired',
+      badgeClass: 'bg-rose-500/15 text-rose-400 border-rose-500/30 shadow-xs',
+      dotClass: 'bg-rose-500',
+      subtext: daysLeft < 0 ? `Expired ${overdueDays}d ago` : 'Plan elapsed',
+      icon: 'error',
+      daysRemaining: daysLeft,
+    };
+  }
+
+  // Grace Period: expired within 7 days, or expiring in <= 7 days
+  if (daysLeft <= 0 && daysLeft >= -7) {
+    const overdueDays = Math.abs(daysLeft);
+    const graceRemaining = 7 - overdueDays;
+    return {
+      type: 'grace_period',
+      label: 'Grace Period',
+      badgeClass: 'bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-xs shadow-amber-500/10',
+      dotClass: 'bg-amber-400 animate-pulse',
+      subtext: `${graceRemaining}d grace left (${overdueDays}d overdue)`,
+      icon: 'hourglass_top',
+      daysRemaining: daysLeft,
+    };
+  }
+
+  if (daysLeft > 0 && daysLeft <= 7) {
+    return {
+      type: 'grace_period',
+      label: 'Grace Warning',
+      badgeClass: 'bg-amber-500/15 text-amber-300 border-amber-500/30 shadow-xs',
+      dotClass: 'bg-amber-400 animate-pulse',
+      subtext: `Expires in ${daysLeft} ${daysLeft === 1 ? 'day' : 'days'}`,
+      icon: 'warning',
+      daysRemaining: daysLeft,
+    };
+  }
+
+  // Healthy Active
+  return {
+    type: 'active',
+    label: 'Active',
+    badgeClass: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
+    dotClass: 'bg-emerald-400',
+    subtext: `${daysLeft} days left`,
+    icon: 'verified',
+    daysRemaining: daysLeft,
+  };
+}
+
 export const MembersView: React.FC = () => {
   const {
     members,
@@ -18,7 +133,7 @@ export const MembersView: React.FC = () => {
     syncGoogleSheetNow,
   } = useGym();
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedStatus, setSelectedStatus] = useState<MemberStatus | 'all'>('all');
+  const [selectedStatus, setSelectedStatus] = useState<SubscriptionFilter>('all');
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
   const [isSyncingSheets, setIsSyncingSheets] = useState(false);
   const [paymentModalMember, setPaymentModalMember] = useState<Member | null>(null);
@@ -49,36 +164,38 @@ export const MembersView: React.FC = () => {
   };
 
   const filteredMembers = members.filter((member) => {
+    if (!member) return false;
     const matchesSearch =
-      member.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      member.memberCode.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      member.phone.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      member.email.toLowerCase().includes(searchQuery.toLowerCase());
+      (member.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (member.memberCode || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (member.phone || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (member.email || '').toLowerCase().includes(searchQuery.toLowerCase());
 
+    const subStatus = getMemberSubscriptionStatus(member);
     let matchesStatus = true;
     if (selectedStatus === 'all') {
       matchesStatus = true;
-    } else if (selectedStatus === 'pending') {
-      matchesStatus =
-        member.status === 'pending' ||
-        Boolean(member.expiryDate && new Date(member.expiryDate).getTime() - Date.now() < 7 * 86400000 && member.status !== 'expired');
-    } else {
-      matchesStatus = member.status === selectedStatus;
+    } else if (selectedStatus === 'grace_period') {
+      matchesStatus = subStatus.type === 'grace_period';
+    } else if (selectedStatus === 'active') {
+      matchesStatus = subStatus.type === 'active';
+    } else if (selectedStatus === 'expired') {
+      matchesStatus = subStatus.type === 'expired';
+    } else if (selectedStatus === 'frozen') {
+      matchesStatus = subStatus.type === 'frozen';
+    } else if (selectedStatus === 'cancelled') {
+      matchesStatus = subStatus.type === 'cancelled';
     }
     return matchesSearch && matchesStatus;
   });
 
   const counts = {
-    all: members.length,
-    active: members.filter((m) => m.status === 'active').length,
-    expired: members.filter((m) => m.status === 'expired').length,
-    pending: members.filter(
-      (m) =>
-        m.status === 'pending' ||
-        Boolean(m.expiryDate && new Date(m.expiryDate).getTime() - Date.now() < 7 * 86400000 && m.status !== 'expired')
-    ).length,
-    frozen: members.filter((m) => m.status === 'frozen').length,
-    cancelled: members.filter((m) => m.status === 'cancelled').length,
+    all: members.filter(Boolean).length,
+    active: members.filter((m) => m && getMemberSubscriptionStatus(m).type === 'active').length,
+    grace: members.filter((m) => m && getMemberSubscriptionStatus(m).type === 'grace_period').length,
+    expired: members.filter((m) => m && getMemberSubscriptionStatus(m).type === 'expired').length,
+    frozen: members.filter((m) => m && m.status === 'frozen').length,
+    cancelled: members.filter((m) => m && m.status === 'cancelled').length,
   };
 
   return (
@@ -192,6 +309,18 @@ export const MembersView: React.FC = () => {
             Active <span className="ml-1 px-1.5 py-0.5 bg-surface-container-high/80 rounded-full text-[10px]">{counts.active}</span>
           </button>
           <button
+            onClick={() => setSelectedStatus('grace_period')}
+            className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
+              selectedStatus === 'grace_period'
+                ? 'bg-amber-500 text-slate-950 font-bold shadow-sm'
+                : 'bg-surface-container text-amber-300 hover:text-amber-200 hover:bg-surface-container-high'
+            }`}
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+            <span>Grace Period</span>
+            <span className="ml-1 px-1.5 py-0.5 bg-black/20 rounded-full text-[10px] font-mono">{counts.grace}</span>
+          </button>
+          <button
             onClick={() => setSelectedStatus('expired')}
             className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
               selectedStatus === 'expired'
@@ -202,20 +331,10 @@ export const MembersView: React.FC = () => {
             Expired <span className="ml-1 px-1.5 py-0.5 bg-surface-container-high/80 rounded-full text-[10px]">{counts.expired}</span>
           </button>
           <button
-            onClick={() => setSelectedStatus('pending')}
-            className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
-              selectedStatus === 'pending'
-                ? 'bg-amber-600 text-white shadow-sm'
-                : 'bg-surface-container text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high'
-            }`}
-          >
-            Pending <span className="ml-1 px-1.5 py-0.5 bg-surface-container-high/80 rounded-full text-[10px]">{counts.pending}</span>
-          </button>
-          <button
             onClick={() => setSelectedStatus('frozen')}
             className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
               selectedStatus === 'frozen'
-                ? 'bg-primary text-on-primary shadow-sm'
+                ? 'bg-sky-600 text-white shadow-sm'
                 : 'bg-surface-container text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high'
             }`}
           >
@@ -245,15 +364,14 @@ export const MembersView: React.FC = () => {
                 <th className="py-3.5 px-6">Phone Number</th>
                 <th className="py-3.5 px-6">Active Plan</th>
                 <th className="py-3.5 px-6">Gymify Points</th>
-                <th className="py-3.5 px-6">Status</th>
+                <th className="py-3.5 px-6">Subscription Status</th>
                 <th className="py-3.5 px-6 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-surface-container/60 text-xs text-on-surface">
               {filteredMembers.map((member) => {
-                const isActive = member.status === 'active';
-                const isFrozen = member.status === 'frozen';
-                const isExpired = member.status === 'expired' || member.status === 'cancelled';
+                const subStatus = getMemberSubscriptionStatus(member);
+                const isActive = subStatus.type === 'active' || subStatus.type === 'grace_period';
 
                 return (
                   <tr key={member.id} className="hover:bg-surface-container/40 transition-colors group">
@@ -286,22 +404,18 @@ export const MembersView: React.FC = () => {
                       </div>
                     </td>
                     <td className="py-4 px-6">
-                      <span
-                        className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold ${
-                          isActive
-                            ? 'bg-primary/10 text-primary'
-                            : isFrozen
-                            ? 'bg-secondary/15 text-secondary'
-                            : 'bg-error/15 text-error'
-                        }`}
-                      >
+                      <div className="space-y-1">
                         <span
-                          className={`w-1.5 h-1.5 rounded-full ${
-                            isActive ? 'bg-primary' : isFrozen ? 'bg-secondary' : 'bg-error'
-                          }`}
-                        ></span>
-                        <span className="capitalize">{member.status}</span>
-                      </span>
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold border ${subStatus.badgeClass}`}
+                        >
+                          <span className={`w-1.5 h-1.5 rounded-full ${subStatus.dotClass}`}></span>
+                          <span className="material-symbols-outlined text-[13px]">{subStatus.icon}</span>
+                          <span>{subStatus.label}</span>
+                        </span>
+                        <div className="text-[10px] text-on-surface-variant font-mono pl-0.5">
+                          {subStatus.subtext}
+                        </div>
+                      </div>
                     </td>
                     <td className="py-4 px-6 text-right space-x-2">
                       <button
@@ -412,13 +526,29 @@ export const MembersView: React.FC = () => {
                   <span className="text-on-surface-variant">Membership Plan</span>
                   <span className="font-semibold text-on-surface">{activeMember.plan}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-on-surface-variant">Status</span>
-                  <span className="font-semibold capitalize text-primary">{activeMember.status}</span>
+                <div className="flex justify-between items-center">
+                  <span className="text-on-surface-variant">Subscription Lifecycle</span>
+                  {(() => {
+                    const st = getMemberSubscriptionStatus(activeMember);
+                    return (
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${st.badgeClass}`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${st.dotClass}`}></span>
+                        <span className="material-symbols-outlined text-[12px]">{st.icon}</span>
+                        <span>{st.label}</span>
+                      </span>
+                    );
+                  })()}
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-on-surface-variant">Contract Expiry</span>
-                  <span className="font-mono text-on-surface">{activeMember.expiryDate}</span>
+                  <span className="text-on-surface-variant">Grace Status / Expiry</span>
+                  {(() => {
+                    const st = getMemberSubscriptionStatus(activeMember);
+                    return (
+                      <span className="font-mono text-on-surface text-[11px] font-medium">
+                        {activeMember.expiryDate} • <span className="text-primary font-bold">{st.subtext}</span>
+                      </span>
+                    );
+                  })()}
                 </div>
                 <div className="flex justify-between">
                   <span className="text-on-surface-variant">Total Facility Check-ins</span>

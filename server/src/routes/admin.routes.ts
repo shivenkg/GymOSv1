@@ -1,6 +1,7 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { authenticateToken, requireRole } from '../middleware/auth.ts';
 import { testDbConnection, checkDbConnection, getDbPool } from '../config/db.ts';
+import { checkMongoConnection, normalizeMongoUri } from '../config/mongo.ts';
 import { config } from '../config/env.ts';
 
 export const adminRouter = Router();
@@ -171,21 +172,25 @@ let tenantDatabasesStore: any[] = [
     tenantName: 'Olympus Athletics & Wellness',
     engine: 'mongodb',
     strategy: 'isolated_collection',
-    host: 'mongo-node-mum-1.gymos.internal',
+    host: 'cluster0.ln8epjv.mongodb.net',
     port: 27017,
-    databaseName: 'olympus_fitness_mongo',
-    username: 'olympus_dba',
-    connectionUriMasked: 'mongodb://olympus_dba:••••••••@mongo-node-mum-1.gymos.internal:27017/olympus_fitness_mongo?authSource=admin',
+    databaseName: 'gymos',
+    username: 'superadmin',
+    connectionString: 'mongodb+srv://superadmin:Admin#321@cluster0.ln8epjv.mongodb.net/?appName=Cluster0',
+    connectionUriMasked: 'mongodb+srv://superadmin:••••••••@cluster0.ln8epjv.mongodb.net/gymos?retryWrites=true&w=majority',
     sslEnabled: true,
-    sslMode: 'prefer',
+    sslMode: 'require',
     poolMin: 1,
     poolMax: 10,
     idleTimeoutMs: 20000,
-    status: 'Provisioning',
-    latencyMs: 35,
-    storageMb: 12.0,
-    collectionsOrTablesCount: 8,
-    lastChecked: '10 mins ago',
+    status: 'Detached',
+    attachmentStatus: 'detached',
+    isAttached: false,
+    detachedAt: 'Today at 02:15 AM',
+    latencyMs: 0,
+    storageMb: 0,
+    collectionsOrTablesCount: 0,
+    lastChecked: 'Detached (Operating on Fallback System DB)',
     lastMigrationVersion: 'v1.0.0-draft',
     features: {
       autoBackupEnabled: false,
@@ -208,19 +213,19 @@ function parseDbConnectionString(uri: string): {
   try {
     const isMongo = uri.startsWith('mongodb://') || uri.startsWith('mongodb+srv://');
     if (isMongo) {
-      // Basic regex extraction for MongoDB connection strings
-      const match = uri.match(/^mongodb(?:\+srv)?:\/\/(?:([^:]+):([^@]+)@)?([^/:?]+)(?::(\d+))?(?:\/([^?]+))?/);
+      const normalized = normalizeMongoUri(uri);
+      const match = normalized.match(/^mongodb(?:\+srv)?:\/\/(?:([^:]+):([^@]+)@)?([^/:?]+)(?::(\d+))?(?:\/([^?]+))?/);
       if (match) {
         return {
           engine: 'mongodb',
-          username: match[1] || 'admin',
-          password: match[2] || '',
+          username: match[1] ? decodeURIComponent(match[1]) : 'admin',
+          password: match[2] ? decodeURIComponent(match[2]) : '',
           host: match[3] || 'cluster0.mongodb.net',
           port: match[4] ? parseInt(match[4], 10) : 27017,
-          databaseName: match[5] || 'gymos_tenant_db',
+          databaseName: match[5] || 'gymos',
         };
       }
-      return { engine: 'mongodb', databaseName: 'gymos_tenant_db' };
+      return { engine: 'mongodb', databaseName: 'gymos' };
     }
 
     const parsed = new URL(uri);
@@ -308,7 +313,7 @@ adminRouter.post('/tenants/databases/test', async (req: Request, res: Response, 
     });
 
     if (engine === 'mongodb' || (rawUri && (rawUri.startsWith('mongodb://') || rawUri.startsWith('mongodb+srv://')))) {
-      const uri = rawUri || `mongodb://${username || 'admin'}:***@${host || 'localhost'}:${port || 27017}/${databaseName || 'gymos_tenant'}`;
+      const uri = rawUri || `mongodb://${username || 'admin'}:***@${host || 'localhost'}:${port || 27017}/${databaseName || 'gymos'}`;
       if (!uri.startsWith('mongodb://') && !uri.startsWith('mongodb+srv://')) {
         res.status(400).json({
           success: false,
@@ -317,14 +322,43 @@ adminRouter.post('/tenants/databases/test', async (req: Request, res: Response, 
         return;
       }
 
-      // Simulate MongoDB ping latency
-      const simulatedLatency = Math.floor(12 + Math.random() * 25);
-      res.json({
-        success: true,
-        message: `Successfully connected to MongoDB cluster for database "${databaseName || 'gymos_tenant'}". Wire protocol v21 confirmed.`,
-        latencyMs: simulatedLatency,
-        engineVersion: 'MongoDB 7.0.8 Community / Atlas v6.0',
-        ssl: sslEnabled !== false,
+      const mRes = await checkMongoConnection(uri, databaseName || 'gymos');
+      if (mRes.healthy) {
+        res.json({
+          success: true,
+          message: `Successfully connected to MongoDB cluster for database "${mRes.databaseName || databaseName || 'gymos'}".`,
+          latencyMs: mRes.latencyMs,
+          engineVersion: mRes.engineVersion,
+          wireProtocolVersion: mRes.wireProtocolVersion,
+          databases: mRes.databases,
+          ssl: sslEnabled !== false,
+        });
+        return;
+      }
+
+      if (mRes.isIpBlocked) {
+        res.status(200).json({
+          success: false,
+          isIpBlocked: true,
+          detectedIp: mRes.detectedIp,
+          latencyMs: mRes.latencyMs,
+          engineVersion: mRes.engineVersion,
+          message: mRes.error,
+          resolutionSteps: [
+            'Log into your MongoDB Atlas console (https://cloud.mongodb.com).',
+            'In the left navigation bar under "Security", select "Network Access".',
+            'Click the "+ Add IP Address" button.',
+            'Choose "Allow Access From Anywhere" (0.0.0.0/0) or enter IP ' + (mRes.detectedIp || '34.34.244.54') + '.',
+            'Click "Confirm" and retry connection once Atlas status changes to Active.',
+          ],
+        });
+        return;
+      }
+
+      res.status(200).json({
+        success: false,
+        latencyMs: mRes.latencyMs,
+        message: mRes.error || 'Failed to ping MongoDB cluster.',
       });
       return;
     }
@@ -515,9 +549,177 @@ adminRouter.post('/tenants/databases/provision', async (req: Request, res: Respo
 
     res.json({
       success: true,
-      message: `Tenant database "${databaseName}" provisioned and registered in main system database successfully on ${engine.toUpperCase()}. Schema & indexes initialized.`,
+      message: `Tenant database "${databaseName}" provisioned and registered in main system database successfully on ${(engine || 'database').toUpperCase()}. Schema & indexes initialized.`,
       config: newConfig,
       initializedItems: createdItems,
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// POST /api/admin/tenants/databases/:id/detach - Detaches database binding for a tenant
+adminRouter.post('/tenants/databases/:id/detach', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const target = tenantDatabasesStore.find((t) => t.id === id || t.tenantId === id);
+    if (target) {
+      target.attachmentStatus = 'detached';
+      target.isAttached = false;
+      target.status = 'Detached';
+      target.detachedAt = new Date().toISOString();
+      target.lastChecked = `Detached on ${new Date().toLocaleTimeString()} (Fallback to System DB)`;
+    }
+
+    if (config.databaseUrl) {
+      try {
+        const pool = getDbPool();
+        if (pool) {
+          await pool.query(
+            "UPDATE tenant_databases SET status = 'Detached', updated_at = NOW() WHERE id = $1 OR tenant_id = $1",
+            [id]
+          );
+        }
+      } catch (err: any) {
+        console.warn('[GymOS Admin] Failed to update tenant_databases detached status:', err.message);
+      }
+    }
+
+    res.json({
+      success: true,
+      message: `Tenant database "${target?.databaseName || id}" successfully detached. Tenant reverted to shared system sandbox.`,
+      config: target,
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// POST /api/admin/tenants/databases/:id/attach - Attaches and binds database for a tenant
+adminRouter.post('/tenants/databases/:id/attach', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const target = tenantDatabasesStore.find((t) => t.id === id || t.tenantId === id);
+    if (!target) {
+      res.status(404).json({ error: 'Tenant database configuration not found.' });
+      return;
+    }
+
+    // Run connection test to determine live status upon attachment
+    let connectionLive = false;
+    let pingLatency = 14;
+    let isIpBlocked = false;
+    let pingError: string | undefined;
+
+    if (target.engine === 'mongodb') {
+      const uri = target.connectionString || (target.connectionUriMasked && !target.connectionUriMasked.includes('••••••••') ? target.connectionUriMasked : config.mongoUri);
+      if (uri) {
+        const mRes = await checkMongoConnection(uri, target.databaseName);
+        connectionLive = mRes.healthy;
+        pingLatency = mRes.latencyMs || 15;
+        isIpBlocked = Boolean(mRes.isIpBlocked);
+        pingError = mRes.error;
+      }
+    } else {
+      const pgRes = await testDbConnection({
+        host: target.host,
+        port: target.port,
+        database: target.databaseName,
+        user: target.username,
+        sslEnabled: target.sslEnabled,
+      });
+      connectionLive = pgRes.success;
+      pingLatency = pgRes.latencyMs || 12;
+      pingError = pgRes.message;
+    }
+
+    target.attachmentStatus = 'attached';
+    target.isAttached = true;
+    target.status = connectionLive ? 'Connected' : isIpBlocked ? 'IP Blocked' : 'Degraded';
+    target.isIpBlocked = isIpBlocked;
+    target.lastPingError = pingError;
+    target.attachedAt = new Date().toISOString();
+    target.latencyMs = pingLatency;
+    target.lastChecked = `Attached & Verified (${pingLatency}ms)`;
+
+    if (config.databaseUrl) {
+      try {
+        const pool = getDbPool();
+        if (pool) {
+          await pool.query(
+            "UPDATE tenant_databases SET status = $1, latency_ms = $2, updated_at = NOW() WHERE id = $3 OR tenant_id = $3",
+            [target.status, pingLatency, id]
+          );
+        }
+      } catch (err: any) {
+        console.warn('[GymOS Admin] Failed to update tenant_databases attached status:', err.message);
+      }
+    }
+
+    res.json({
+      success: true,
+      message: `Tenant database "${target.databaseName}" successfully attached on ${(target.engine || 'database').toUpperCase()}. Status: ${target.status}.`,
+      config: target,
+      isIpBlocked,
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// POST /api/admin/tenants/databases/:id/ping - Live ping test for a specific tenant database
+adminRouter.post('/tenants/databases/:id/ping', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const target = tenantDatabasesStore.find((t) => t.id === id || t.tenantId === id);
+    if (!target) {
+      res.status(404).json({ error: 'Tenant database configuration not found.' });
+      return;
+    }
+
+    if (target.engine === 'mongodb') {
+      const uri = target.connectionString || (target.connectionUriMasked && !target.connectionUriMasked.includes('••••••••') ? target.connectionUriMasked : config.mongoUri);
+      const mRes = await checkMongoConnection(uri || config.mongoUri, target.databaseName);
+      target.latencyMs = mRes.latencyMs || 18;
+      target.isIpBlocked = mRes.isIpBlocked;
+      target.status = mRes.healthy ? 'Connected' : mRes.isIpBlocked ? 'IP Blocked' : 'Degraded';
+      target.lastChecked = `Pinged just now (${target.latencyMs}ms)`;
+      target.lastPingError = mRes.error;
+
+      res.json({
+        success: mRes.healthy,
+        status: target.status,
+        latencyMs: target.latencyMs,
+        isIpBlocked: mRes.isIpBlocked,
+        detectedIp: mRes.detectedIp,
+        engineVersion: mRes.engineVersion,
+        message: mRes.error || `MongoDB responded in ${target.latencyMs}ms`,
+        lastChecked: target.lastChecked,
+      });
+      return;
+    }
+
+    // PostgreSQL ping
+    const pgRes = await testDbConnection({
+      host: target.host,
+      port: target.port,
+      database: target.databaseName,
+      user: target.username,
+      sslEnabled: target.sslEnabled,
+    });
+
+    target.latencyMs = pgRes.latencyMs || 14;
+    target.status = pgRes.success ? 'Connected' : 'Degraded';
+    target.lastChecked = `Pinged just now (${target.latencyMs}ms)`;
+    target.lastPingError = pgRes.message;
+
+    res.json({
+      success: pgRes.success,
+      status: target.status,
+      latencyMs: target.latencyMs,
+      engineVersion: (pgRes as any).engineVersion || 'PostgreSQL 16.2',
+      message: pgRes.message,
+      lastChecked: target.lastChecked,
     });
   } catch (err) {
     next(err);

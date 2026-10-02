@@ -89,7 +89,7 @@ export const ReportsAnalyticsView: React.FC = () => {
     return growthData.trendPoints;
   }, [growthData, timeFilter]);
 
-  // Pull member updates from Google Sheet into Gymofy DB
+  // Pull member updates from Google Sheet into Gymify DB
   const handlePullFromSheets = async () => {
     setIsPulling(true);
     try {
@@ -119,7 +119,7 @@ export const ReportsAnalyticsView: React.FC = () => {
     }
   };
 
-  // Push member updates from Gymofy DB to Google Sheet
+  // Push member updates from Gymify DB to Google Sheet
   const handlePushToSheets = async () => {
     setIsPushing(true);
     try {
@@ -831,7 +831,7 @@ export const ReportsAnalyticsView: React.FC = () => {
                       <td className="py-2.5 px-3 text-right">
                         <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-500">
                           <span className="material-symbols-outlined text-[14px]">check_circle</span>
-                          {log.status}
+                          {log?.status || 'Success'}
                         </span>
                       </td>
                     </tr>

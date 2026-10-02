@@ -83,12 +83,12 @@ export const LoginView: React.FC = () => {
           title="Go to Product Showcase"
         >
           <img
-            alt="Gymofy Logo"
+            alt="Gymify Logo"
             className="h-9 w-auto object-contain transition-transform group-hover:scale-105"
             src={APP_LOGO}
           />
           <div>
-            <span className="text-xl font-headline font-bold text-primary tracking-tight">Gymofy</span>
+            <span className="text-xl font-headline font-bold text-primary tracking-tight">Gymify</span>
             <span className="block text-[10px] text-on-surface-variant font-mono uppercase tracking-widest">
               Enterprise Platform
             </span>
@@ -279,7 +279,7 @@ export const LoginView: React.FC = () => {
                 <span className="material-symbols-outlined text-[24px]">vpn_key</span>
               </div>
               <h1 className="text-2xl font-headline font-bold text-on-surface tracking-tight">
-                Sign In to Gymofy
+                Sign In to Gymify
               </h1>
               <p className="text-xs text-on-surface-variant mt-1">
                 Enter your credentials to access your club terminal or platform engine.
@@ -474,7 +474,7 @@ export const LoginView: React.FC = () => {
 
       {/* Footer */}
       <div className="text-center text-xs text-on-surface-variant/70 z-10 pt-4">
-        Gymofy™ Enterprise Infrastructure • Telemetry &amp; Access System v2.6.4
+        Gymify™ Enterprise Infrastructure • Telemetry &amp; Access System v2.6.4
       </div>
     </div>
   );

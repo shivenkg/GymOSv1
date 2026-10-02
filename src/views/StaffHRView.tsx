@@ -309,6 +309,7 @@ export const StaffHRView: React.FC = () => {
 
             <div className="space-y-3">
               {staffFeed.map((feedItem) => {
+                if (!feedItem) return null;
                 const isNeedsReview = feedItem.status === 'Manager Review Required';
                 const isApproved = feedItem.status === 'Approved by Manager';
                 const isRejected = feedItem.status === 'Rejected';

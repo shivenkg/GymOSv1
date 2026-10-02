@@ -1763,13 +1763,13 @@ export const Modals: React.FC = () => {
                 <div className="flex items-center gap-2">
                   <h3 className="text-lg font-headline font-bold text-on-surface">{modalPayload.name}</h3>
                   <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold uppercase ${
-                    modalPayload.status === 'active'
+                    modalPayload?.status === 'active'
                       ? 'bg-emerald-500/20 text-emerald-500'
-                      : modalPayload.status === 'expired'
+                      : modalPayload?.status === 'expired'
                       ? 'bg-error/20 text-error'
                       : 'bg-amber-500/20 text-amber-500'
                   }`}>
-                    {modalPayload.status}
+                    {modalPayload?.status || 'active'}
                   </span>
                 </div>
                 <div className="text-xs text-on-surface-variant font-mono mt-0.5">
@@ -1814,7 +1814,7 @@ export const Modals: React.FC = () => {
                   await checkInMember(modalPayload.id);
                   closeModal();
                 }}
-                disabled={modalPayload.status !== 'active'}
+                disabled={modalPayload?.status !== 'active'}
                 className="flex-1 py-2 px-3 rounded-xl bg-primary text-on-primary font-semibold text-xs hover:opacity-90 transition-all disabled:opacity-40 flex items-center justify-center gap-1.5"
               >
                 <span className="material-symbols-outlined text-[16px]">qr_code_scanner</span>

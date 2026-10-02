@@ -138,8 +138,19 @@ export const Header: React.FC = () => {
           <span className="material-symbols-outlined text-[16px] text-on-surface-variant">expand_more</span>
         </button>
 
-        {/* Function Module Breadcrumb Pill */}
+        {/* Function Module Breadcrumb Pill with Club & Date */}
         <div className="hidden xl:flex items-center gap-2 px-3 py-1 bg-surface-container/70 rounded-xl border border-outline-variant/30 text-xs">
+          {/* Club Identity & Date */}
+          <div className="flex items-center gap-1.5">
+            <div className="w-4 h-4 rounded-full bg-primary text-on-primary flex items-center justify-center text-[9px] shrink-0">
+              <span className="material-symbols-outlined text-[11px]">fitness_center</span>
+            </div>
+            <span className="font-semibold text-on-surface text-xs whitespace-nowrap">Ironline Strength Club</span>
+            <span className="text-[10px] font-mono text-on-surface-variant/70">07/13/2026</span>
+          </div>
+
+          <span className="text-on-surface-variant/40 text-[10px]">/</span>
+
           <span className="text-[10px] font-mono uppercase tracking-wider text-primary font-bold flex items-center gap-1">
             <span className="material-symbols-outlined text-[14px]">{currentFn.icon}</span>
             <span>{currentFn.fn}</span>
@@ -271,13 +282,13 @@ export const Header: React.FC = () => {
 
                     <div className="flex items-center gap-2 shrink-0">
                       <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold uppercase ${
-                        member.status === 'active'
+                        member?.status === 'active'
                           ? 'bg-emerald-500/15 text-emerald-500'
-                          : member.status === 'expired'
+                          : member?.status === 'expired'
                           ? 'bg-error/15 text-error'
                           : 'bg-amber-500/15 text-amber-500'
                       }`}>
-                        {member.status}
+                        {member?.status || 'active'}
                       </span>
                       <span className="material-symbols-outlined text-[16px] text-on-surface-variant group-hover:text-primary transition-colors">
                         chevron_right
@@ -338,15 +349,6 @@ export const Header: React.FC = () => {
             {theme === 'dark' ? 'Light' : 'Dark'}
           </span>
         </button>
-
-        {/* Club & Date Indicator Badge (Matching inspiration image) */}
-        <div className="hidden xl:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-surface-container border border-outline-variant/30 text-xs">
-          <span className="font-semibold text-on-surface">Ironline Strength Club</span>
-          <span className="text-[11px] font-mono text-on-surface-variant">07/13/2026</span>
-          <div className="w-5 h-5 rounded-full bg-primary text-on-primary flex items-center justify-center text-[10px]">
-            <span className="material-symbols-outlined text-[12px]">fitness_center</span>
-          </div>
-        </div>
 
         {/* Persistent Real-Time Operations Alerts Notification Bell */}
         <PersistentNotificationBell />

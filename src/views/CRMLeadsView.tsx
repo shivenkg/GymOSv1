@@ -223,11 +223,13 @@ export const CRMLeadsView: React.FC = () => {
                   </thead>
                   <tbody className="divide-y divide-outline-variant/10 text-xs text-on-surface">
                     {filteredLeads.map((lead) => {
-                      const initials = lead.name
+                      const initials = (lead?.name || 'Lead')
                         .split(' ')
-                        .map((n) => n[0])
+                        .filter(Boolean)
+                        .map((n) => n[0] || '')
                         .join('')
-                        .toUpperCase();
+                        .slice(0, 2)
+                        .toUpperCase() || 'LD';
 
                       return (
                         <tr key={lead.id} className="hover:bg-surface-container-high/40 transition-colors group">

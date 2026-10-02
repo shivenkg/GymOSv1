@@ -31,7 +31,7 @@ export const UPIFeePaymentModal: React.FC<UPIPaymentModalProps> = ({
   if (!isOpen) return null;
 
   // Real UPI Deep Link string according to NPCI specs
-  const upiId = 'gymofy.pay@icici';
+  const upiId = 'gymify.pay@icici';
   const merchantName = 'Gymify Fitness Club';
   const transactionRef = `GYM${Date.now().toString().slice(-6)}`;
   const upiLink = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(merchantName)}&am=${amount}&cu=INR&tn=${encodeURIComponent(customDesc)}&tr=${transactionRef}`;

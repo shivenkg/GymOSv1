@@ -4,6 +4,7 @@ dotenv.config();
 export interface ServerConfig {
   port: number;
   databaseUrl: string | undefined;
+  mongoUri: string | undefined;
   dbPoolMin: number;
   dbPoolMax: number;
   dbSsl: boolean;
@@ -14,12 +15,25 @@ export interface ServerConfig {
 export const config: ServerConfig = {
   port: parseInt(process.env.PORT || '3000', 10),
   databaseUrl: process.env.DATABASE_URL,
+  mongoUri: process.env.MONGODB_URI || process.env.MONGO_URI || 'mongodb+srv://superadmin:Admin%23321@cluster0.ln8epjv.mongodb.net/gymos?retryWrites=true&w=majority&appName=Cluster0',
   dbPoolMin: parseInt(process.env.DB_POOL_MIN || '2', 10),
   dbPoolMax: parseInt(process.env.DB_POOL_MAX || '10', 10),
   dbSsl: process.env.DB_SSL === 'true',
   jwtSecret: process.env.JWT_SECRET || 'gymos-enterprise-secure-jwt-secret-fallback-do-not-use-in-prod',
   nodeEnv: process.env.NODE_ENV || 'development',
 };
+
+/**
+ * Checks whether MongoDB is configured via MONGODB_URI, MONGO_URI, or DATABASE_URL.
+ */
+export function isMongoConfigured(): boolean {
+  const uri = config.mongoUri || (config.databaseUrl?.startsWith('mongodb') ? config.databaseUrl : undefined);
+  if (!uri || uri.trim() === '') {
+    return false;
+  }
+  const trimmed = uri.trim().toLowerCase();
+  return trimmed.startsWith('mongodb://') || trimmed.startsWith('mongodb+srv://');
+}
 
 /**
  * Checks whether DATABASE_URL is present and is a valid PostgreSQL connection string.

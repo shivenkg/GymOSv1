@@ -38,7 +38,7 @@ export const DashboardOverview: React.FC = () => {
 
   // Real data computations for top BI cards
   const activeMembersCount = useMemo(() => {
-    return members.filter((m) => m.status === 'active').length;
+    return members.filter((m) => m && m.status === 'active').length;
   }, [members]);
 
   const totalMembersCount = members.length;
@@ -48,7 +48,7 @@ export const DashboardOverview: React.FC = () => {
   const todayAttendanceCount = useMemo(() => {
     const todayIso = new Date().toISOString().split('T')[0];
     const todayLogs = checkInLogs.filter((l) => {
-      if (!l.timestamp) return false;
+      if (!l || !l.timestamp) return false;
       try {
         return new Date(l.timestamp).toISOString().split('T')[0] === todayIso && l.status === 'Allowed';
       } catch {
@@ -60,8 +60,8 @@ export const DashboardOverview: React.FC = () => {
 
   // Real today's collection from invoices
   const { totalCollectionAmount, totalPaidTransactions } = useMemo(() => {
-    const paidInvoices = invoices.filter((inv) => inv.status === 'Paid');
-    const total = paidInvoices.reduce((sum, inv) => sum + inv.amount, 0);
+    const paidInvoices = invoices.filter((inv) => inv && inv.status === 'Paid');
+    const total = paidInvoices.reduce((sum, inv) => sum + (inv.amount || 0), 0);
     return {
       totalCollectionAmount: total > 0 ? total : 184500,
       totalPaidTransactions: paidInvoices.length > 0 ? paidInvoices.length : 26,
@@ -73,6 +73,7 @@ export const DashboardOverview: React.FC = () => {
     const now = Date.now();
     const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
     const expiring = members.filter((m) => {
+      if (!m) return false;
       if (m.status === 'expired') return true;
       if (m.expiryDate) {
         try {
@@ -269,13 +270,13 @@ export const DashboardOverview: React.FC = () => {
           onClick={() => setActiveScreen('members')}
           className="bg-surface-container-low p-4 sm:p-5 rounded-2xl border border-outline-variant/30 flex flex-col justify-between cursor-pointer hover:border-primary/40 transition-all group shadow-xs"
         >
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between bg-[#d1e9ed]">
             <span className="text-xs text-on-surface-variant font-medium">Total Members</span>
             <div className="w-8 h-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
               <span className="material-symbols-outlined text-[18px]">group</span>
             </div>
           </div>
-          <div className="mt-3">
+          <div className="mt-3 bg-[#c8dde5]">
             <div className="text-2xl sm:text-3xl font-bold font-headline text-on-surface font-mono">44</div>
             <div className="text-[11px] text-on-surface-variant mt-1">26 active</div>
           </div>
@@ -284,7 +285,7 @@ export const DashboardOverview: React.FC = () => {
         {/* 2. Active Members */}
         <div
           onClick={() => setActiveScreen('members')}
-          className="bg-surface-container-low p-4 sm:p-5 rounded-2xl border border-outline-variant/30 flex flex-col justify-between cursor-pointer hover:border-emerald-500/40 transition-all group shadow-xs"
+          className="bg-[#ecf7f5] p-4 sm:p-5 rounded-2xl border border-outline-variant/30 flex flex-col justify-between cursor-pointer hover:border-emerald-500/40 transition-all group shadow-xs"
         >
           <div className="flex items-center justify-between">
             <span className="text-xs text-on-surface-variant font-medium">Active Members</span>
@@ -913,11 +914,13 @@ export const DashboardOverview: React.FC = () => {
               </thead>
               <tbody className="divide-y divide-outline-variant/10 text-xs text-on-surface">
                 {checkInLogs.slice(0, 4).map((log) => {
-                  const initials = log.memberName
+                  const initials = (log?.memberName || 'Member')
                     .split(' ')
-                    .map((n) => n[0])
+                    .filter(Boolean)
+                    .map((n) => n[0] || '')
                     .join('')
-                    .toUpperCase();
+                    .slice(0, 2)
+                    .toUpperCase() || 'MB';
                   const isAllowed = log.status === 'Allowed';
 
                   return (

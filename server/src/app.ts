@@ -3,6 +3,8 @@ import cors from 'cors';
 import pinoHttp from 'pino-http';
 import { logger } from './config/logger.ts';
 import { checkDbConnection } from './config/db.ts';
+import { checkMongoConnection } from './config/mongo.ts';
+import { isMongoConfigured, config } from './config/env.ts';
 import { authRouter } from './routes/auth.routes.ts';
 import { membersRouter } from './routes/members.routes.ts';
 import { paymentsRouter } from './routes/payments.routes.ts';
@@ -40,6 +42,25 @@ export function createExpressApp(): Express {
   app.get(['/health', '/health/'], async (_req: Request, res: Response): Promise<void> => {
     try {
       const dbStatus = await checkDbConnection();
+      let mongoStatus: any = {
+        configured: isMongoConfigured(),
+        connected: false,
+      };
+
+      if (isMongoConfigured()) {
+        const mRes = await checkMongoConnection();
+        mongoStatus = {
+          configured: true,
+          connected: mRes.healthy,
+          latencyMs: mRes.latencyMs,
+          engineVersion: mRes.engineVersion,
+          database: mRes.databaseName,
+          isIpBlocked: mRes.isIpBlocked,
+          detectedIp: mRes.detectedIp,
+          error: mRes.error,
+        };
+      }
+
       res.status(200).json({
         status: 'UP',
         service: 'GymOS Enterprise Backend API',
@@ -48,9 +69,10 @@ export function createExpressApp(): Express {
           configured: !dbStatus.error?.includes('not configured'),
           connected: dbStatus.healthy,
           latencyMs: dbStatus.latencyMs,
-          mode: dbStatus.healthy ? 'POSTGRES_LIVE' : 'DEMO_STANDALONE',
+          mode: dbStatus.healthy ? 'POSTGRES_LIVE' : (mongoStatus.connected ? 'MONGODB_LIVE' : 'DEMO_STANDALONE'),
           error: dbStatus.error,
         },
+        mongodb: mongoStatus,
       });
     } catch (err: any) {
       res.status(200).json({

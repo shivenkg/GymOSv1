@@ -44,7 +44,7 @@ export const BiometricAttendanceScanner: React.FC<BiometricScannerProps> = ({
   const mediaStreamRef = useRef<MediaStream | null>(null);
 
   // Filter list of eligible members / staff
-  const availableMembers = members.filter(m => m.status === 'active' || m.status === 'frozen');
+  const availableMembers = members.filter(m => m && (m.status === 'active' || m.status === 'frozen'));
   const filteredCandidates = scanType === 'member'
     ? members.filter(m =>
         !searchFilter.trim() ||

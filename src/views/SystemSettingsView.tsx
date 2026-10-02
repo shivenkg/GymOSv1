@@ -19,14 +19,20 @@ const parseConnectionString = (raw: string): ParsedUri => {
   const isMongo = trimmed.startsWith('mongodb://') || trimmed.startsWith('mongodb+srv://');
   if (isMongo) {
     const match = trimmed.match(/^mongodb(?:\+srv)?:\/\/(?:([^:]+):([^@]+)@)?([^/:?]+)(?::(\d+))?(?:\/([^?]+))?/);
+    let user = 'superadmin';
+    if (match?.[1]) {
+      try { user = decodeURIComponent(match[1]); } catch { user = match[1]; }
+    }
+    const host = match?.[3] || 'cluster0.ln8epjv.mongodb.net';
+    const dbName = match?.[5] ? match[5].split('?')[0] : 'gymos';
     return {
       engine: 'mongodb',
-      host: match?.[3] || 'cluster0.mongodb.net',
+      host,
       port: match?.[4] ? parseInt(match[4], 10) : 27017,
-      databaseName: match?.[5] || 'gymos_tenant_db',
-      username: match?.[1] ? decodeURIComponent(match[1]) : 'admin',
+      databaseName: dbName || 'gymos',
+      username: user,
       sslMode: 'require',
-      isValid: Boolean(match?.[3] && match?.[5]),
+      isValid: Boolean(host),
     };
   }
 
@@ -68,7 +74,7 @@ export const SystemSettingsView: React.FC = () => {
 
   // Quick Connection String Provisioning State
   const [quickConnectionString, setQuickConnectionString] = useState(
-    'postgresql://tenant_apex_dba:Pass123!@pg-cluster-prod-01.ap-south-1.rds.amazonaws.com:5432/gymos_tenant_apex_prod?sslmode=require'
+    'mongodb+srv://superadmin:Admin#321@cluster0.ln8epjv.mongodb.net/?appName=Cluster0'
   );
   const [quickTenantId, setQuickTenantId] = useState(saasLicenses[0]?.id || 'lic-001');
   const [showPasswordInUri, setShowPasswordInUri] = useState(false);
@@ -78,6 +84,9 @@ export const SystemSettingsView: React.FC = () => {
     message: string;
     latencyMs?: number;
     engineVersion?: string;
+    isIpBlocked?: boolean;
+    detectedIp?: string;
+    resolutionSteps?: string[];
   } | null>(null);
   const [isQuickProvisioning, setIsQuickProvisioning] = useState(false);
   const [quickProvisionSuccess, setQuickProvisionSuccess] = useState<{
@@ -208,6 +217,9 @@ export const SystemSettingsView: React.FC = () => {
         poolMax: 20,
         idleTimeoutMs: 30000,
         status: 'Connected',
+        attachmentStatus: 'attached',
+        isAttached: true,
+        attachedAt: `Today at ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
         latencyMs: quickTestResult?.latencyMs || Math.floor(12 + Math.random() * 15),
         storageMb: 14.5,
         collectionsOrTablesCount: parsedUri.engine === 'mongodb' ? 14 : 18,
@@ -226,7 +238,7 @@ export const SystemSettingsView: React.FC = () => {
           message: res.message || 'Provisioning completed and registered in main system database.',
           tenantName,
           databaseName: parsedUri.databaseName,
-          engine: parsedUri.engine.toUpperCase(),
+          engine: (parsedUri.engine || 'postgres').toUpperCase(),
           maskedUri,
           timestamp: new Date().toLocaleTimeString(),
         });
@@ -411,7 +423,7 @@ export const SystemSettingsView: React.FC = () => {
                 >
                   {saasLicenses.map((lic) => (
                     <option key={lic.id} value={lic.id}>
-                      {lic.gymName} ({lic.tier.toUpperCase()} — ID: {lic.id})
+                      {lic.gymName} ({(lic.tier || 'PRO').toUpperCase()} — ID: {lic.id})
                     </option>
                   ))}
                 </select>
@@ -432,6 +444,18 @@ export const SystemSettingsView: React.FC = () => {
                     className="px-2.5 py-1.5 rounded-lg bg-surface-container border border-outline-variant/40 text-[11px] font-medium text-on-surface hover:bg-surface-container-highest cursor-pointer transition-colors"
                   >
                     AWS RDS Postgres
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      handleApplyPreset(
+                        'mongodb+srv://superadmin:Admin#321@cluster0.ln8epjv.mongodb.net/?appName=Cluster0'
+                      )
+                    }
+                    className="px-2.5 py-1.5 rounded-lg bg-emerald-500/20 border border-emerald-500/40 text-[11px] font-bold text-emerald-300 hover:bg-emerald-500/30 cursor-pointer transition-colors shadow-sm flex items-center gap-1.5"
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                    Cluster0 (Live)
                   </button>
                   <button
                     type="button"
@@ -581,26 +605,71 @@ export const SystemSettingsView: React.FC = () => {
             {/* Test Result Message Box */}
             {quickTestResult && (
               <div
-                className={`p-4 rounded-2xl text-xs flex items-start gap-3 border ${
+                className={`p-4 rounded-2xl text-xs flex flex-col gap-3 border ${
                   quickTestResult.success
                     ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30'
+                    : quickTestResult.isIpBlocked
+                    ? 'bg-amber-500/10 text-amber-200 border-amber-500/40'
                     : 'bg-rose-500/10 text-rose-300 border-rose-500/30'
                 }`}
               >
-                <span className="material-symbols-outlined text-lg shrink-0 mt-0.5">
-                  {quickTestResult.success ? 'check_circle' : 'cancel'}
-                </span>
-                <div className="space-y-1">
-                  <div className="font-semibold text-sm">
-                    {quickTestResult.success ? 'Connection Verification Successful' : 'Connection Failed'}
-                  </div>
-                  <div>{quickTestResult.message}</div>
-                  {quickTestResult.latencyMs !== undefined && (
-                    <div className="font-mono text-[11px] opacity-80">
-                      Roundtrip Latency: {quickTestResult.latencyMs}ms | Engine: {quickTestResult.engineVersion || (parsedUri.engine === 'postgres' ? 'PostgreSQL 16.2' : 'MongoDB 7.0.8')}
+                <div className="flex items-start gap-3">
+                  <span className="material-symbols-outlined text-lg shrink-0 mt-0.5">
+                    {quickTestResult.success ? 'check_circle' : quickTestResult.isIpBlocked ? 'shield' : 'cancel'}
+                  </span>
+                  <div className="space-y-1 flex-1">
+                    <div className="font-semibold text-sm flex items-center justify-between">
+                      <span>
+                        {quickTestResult.success
+                          ? 'Connection Verification Successful'
+                          : quickTestResult.isIpBlocked
+                          ? 'MongoDB Atlas Network Access Configuration Required'
+                          : 'Connection Failed'}
+                      </span>
+                      {quickTestResult.isIpBlocked && (
+                        <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-mono text-[10px] border border-amber-500/40">
+                          TLS Alert 80 (IP Whitelist)
+                        </span>
+                      )}
                     </div>
-                  )}
+                    <div className="leading-relaxed opacity-95">{quickTestResult.message}</div>
+                    {quickTestResult.latencyMs !== undefined && (
+                      <div className="font-mono text-[11px] opacity-80 pt-1">
+                        Roundtrip Latency: {quickTestResult.latencyMs}ms | Engine: {quickTestResult.engineVersion || (parsedUri.engine === 'postgres' ? 'PostgreSQL 16.2' : 'MongoDB 7.0.8')}
+                      </div>
+                    )}
+                  </div>
                 </div>
+
+                {/* If Atlas Network Access Whitelist is needed, show direct actionable resolution steps */}
+                {quickTestResult.isIpBlocked && (
+                  <div className="p-3.5 rounded-xl bg-surface-container-lowest/80 border border-amber-500/20 text-xs space-y-2 mt-1">
+                    <div className="font-bold text-amber-300 flex items-center justify-between">
+                      <span className="flex items-center gap-1.5">
+                        <span className="material-symbols-outlined text-sm">vpn_key</span>
+                        How to Whitelist in MongoDB Atlas:
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard?.writeText(quickTestResult.detectedIp || '34.34.244.54');
+                          showToast('IP Copied', `Copied ${quickTestResult.detectedIp || '34.34.244.54'} to clipboard`, 'success');
+                        }}
+                        className="px-2 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-[10px] font-mono font-semibold text-amber-200 cursor-pointer flex items-center gap-1 transition-colors"
+                      >
+                        <span className="material-symbols-outlined text-xs">content_copy</span>
+                        Copy Host IP ({quickTestResult.detectedIp || '34.34.244.54'})
+                      </button>
+                    </div>
+                    <ol className="list-decimal list-inside space-y-1 text-on-surface-variant font-sans text-[11px] leading-relaxed">
+                      <li>Log in to your <strong>MongoDB Atlas Console</strong> (<a href="https://cloud.mongodb.com" target="_blank" rel="noreferrer" className="text-primary underline">cloud.mongodb.com</a>).</li>
+                      <li>In the left sidebar under <strong>Security</strong>, click <strong>Network Access</strong>.</li>
+                      <li>Click the green <strong>+ Add IP Address</strong> button.</li>
+                      <li>Select <strong>Allow Access from Anywhere (0.0.0.0/0)</strong> or paste IP <code className="px-1 py-0.5 bg-surface-container-highest rounded text-amber-300 font-mono">{quickTestResult.detectedIp || '34.34.244.54'}</code>.</li>
+                      <li>Click <strong>Confirm</strong>. Atlas takes ~15–30 seconds to update firewall rules.</li>
+                    </ol>
+                  </div>
+                )}
               </div>
             )}
 

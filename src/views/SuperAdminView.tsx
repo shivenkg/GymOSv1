@@ -4,6 +4,8 @@ import { SaaSPackage, SaaSLicense, OperationStatus } from '../types';
 import { TenantDatabaseManager } from '../components/TenantDatabaseManager';
 import { GoogleSheetsManager } from '../components/GoogleSheetsManager';
 import { LandingCmsManager } from '../components/LandingCmsManager';
+import { JwtSecurityManager } from '../components/JwtSecurityManager';
+import { TurnstileKeyManager } from '../components/TurnstileKeyManager';
 
 export const SuperAdminView: React.FC = () => {
   const {
@@ -21,7 +23,7 @@ export const SuperAdminView: React.FC = () => {
     showToast,
   } = useGym();
 
-  const [activeTab, setActiveTab] = useState<'packages' | 'generator' | 'landing-cms' | 'tenants' | 'telemetry' | 'databases' | 'google-sheets'>('packages');
+  const [activeTab, setActiveTab] = useState<'packages' | 'generator' | 'landing-cms' | 'tenants' | 'telemetry' | 'databases' | 'google-sheets' | 'hardware-keys' | 'jwt-security'>('packages');
 
   // Package Customizer State
   const [customMembers, setCustomMembers] = useState<number>(1500);
@@ -203,8 +205,8 @@ export const SuperAdminView: React.FC = () => {
 
   const handleDownloadCertificate = (license: SaaSLicense) => {
     const payload = {
-      $schema: 'https://gymofy.cloud/schemas/v2/license.json',
-      system: 'Gymofy Next-Gen Operating System',
+      $schema: 'https://gymify.cloud/schemas/v2/license.json',
+      system: 'Gymify Next-Gen Operating System',
       licenseId: license.id,
       licenseKey: license.licenseKey,
       organization: license.gymName,
@@ -435,6 +437,30 @@ export const SuperAdminView: React.FC = () => {
         >
           <span className="material-symbols-outlined text-[18px]">table_chart</span>
           <span>6. Google Sheets Linking &amp; Sync</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('hardware-keys')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all shrink-0 ${
+            activeTab === 'hardware-keys'
+              ? 'bg-primary text-on-primary shadow-lg shadow-primary/20'
+              : 'bg-surface-container text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high'
+          }`}
+        >
+          <span className="material-symbols-outlined text-[18px]">developer_board</span>
+          <span>7. Turnstile Hardware Keys</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('jwt-security')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all shrink-0 ${
+            activeTab === 'jwt-security'
+              ? 'bg-primary text-on-primary shadow-lg shadow-primary/20'
+              : 'bg-surface-container text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high'
+          }`}
+        >
+          <span className="material-symbols-outlined text-[18px]">lock</span>
+          <span>8. JWT &amp; Security Manager</span>
         </button>
       </div>
 
@@ -755,23 +781,23 @@ export const SuperAdminView: React.FC = () => {
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs font-bold text-on-surface">Active Tenant Instance Status</span>
                   <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/20 text-primary font-mono font-semibold">
-                    {activeTenantLicense.status}
+                    {activeTenantLicense?.status || 'Active'}
                   </span>
                 </div>
-                <div className="text-xs text-on-surface font-semibold">{activeTenantLicense.gymName}</div>
-                <div className="text-[11px] text-on-surface-variant font-mono mt-0.5">{activeTenantLicense.tier}</div>
+                <div className="text-xs text-on-surface font-semibold">{activeTenantLicense?.gymName || 'Apex Fitness Platform'}</div>
+                <div className="text-[11px] text-on-surface-variant font-mono mt-0.5">{activeTenantLicense?.tier || 'Enterprise'}</div>
                 <div className="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-outline-variant/20 text-center">
                   <div>
                     <div className="text-[10px] text-on-surface-variant">Member Cap</div>
-                    <div className="text-xs font-mono font-bold text-primary">{activeTenantLicense.maxMembers.toLocaleString()}</div>
+                    <div className="text-xs font-mono font-bold text-primary">{(activeTenantLicense?.maxMembers ?? 10000).toLocaleString()}</div>
                   </div>
                   <div>
                     <div className="text-[10px] text-on-surface-variant">Staff Seats</div>
-                    <div className="text-xs font-mono font-bold text-on-surface">{activeTenantLicense.maxStaff}</div>
+                    <div className="text-xs font-mono font-bold text-on-surface">{activeTenantLicense?.maxStaff ?? 15}</div>
                   </div>
                   <div>
                     <div className="text-[10px] text-on-surface-variant">Locations</div>
-                    <div className="text-xs font-mono font-bold text-on-surface">{activeTenantLicense.maxLocations}</div>
+                    <div className="text-xs font-mono font-bold text-on-surface">{activeTenantLicense?.maxLocations ?? 3}</div>
                   </div>
                 </div>
               </div>
@@ -1090,7 +1116,7 @@ export const SuperAdminView: React.FC = () => {
                         <span className="material-symbols-outlined text-[18px]">workspace_premium</span>
                       </div>
                       <div>
-                        <div className="text-xs font-bold text-on-surface">Gymofy Digital Certificate</div>
+                        <div className="text-xs font-bold text-on-surface">Gymify Digital Certificate</div>
                         <div className="text-[10px] text-primary font-mono">STATUS: ISSUED &amp; VERIFIED</div>
                       </div>
                     </div>
@@ -1515,7 +1541,7 @@ export const SuperAdminView: React.FC = () => {
                   ) : (
                     filteredLicenses.map((lic) => {
                       const usagePercent = Math.min(100, Math.round((lic.currentMembersUsed / lic.maxMembers) * 100));
-                      const isCurrentTenant = lic.id === activeTenantLicense.id;
+                      const isCurrentTenant = lic.id === activeTenantLicense?.id;
 
                       return (
                         <tr key={lic.id} className="hover:bg-surface-container/60 transition-colors">
@@ -1934,6 +1960,20 @@ export const SuperAdminView: React.FC = () => {
       {activeTab === 'landing-cms' && (
         <div className="animate-in fade-in duration-200">
           <LandingCmsManager />
+        </div>
+      )}
+
+      {/* TAB 8: HARDWARE TURNSTILE TERMINAL KEY MANAGER */}
+      {activeTab === 'hardware-keys' && (
+        <div className="animate-in fade-in duration-200">
+          <TurnstileKeyManager />
+        </div>
+      )}
+
+      {/* TAB 9: INTERACTIVE JWT & SECURITY MANAGER */}
+      {activeTab === 'jwt-security' && (
+        <div className="animate-in fade-in duration-200">
+          <JwtSecurityManager />
         </div>
       )}
 

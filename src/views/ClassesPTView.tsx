@@ -66,7 +66,7 @@ export const ClassesPTView: React.FC = () => {
         <div>
           <div className="flex items-center gap-2 mb-1 text-xs">
             <span className="font-semibold text-primary uppercase tracking-wider font-headline">
-              Gymofy Schedule &amp; Operations
+              Gymify Schedule &amp; Operations
             </span>
             <span className="text-on-surface-variant">•</span>
             <span className="text-on-surface-variant">Real-time Telemetry</span>
@@ -460,6 +460,7 @@ export const ClassesPTView: React.FC = () => {
             </thead>
             <tbody className="divide-y divide-outline-variant/10 text-xs">
               {ptSessions.map((pt) => {
+                if (!pt) return null;
                 const isConfirmed = pt.status === 'Confirmed';
                 const isCompleted = pt.status === 'Completed';
                 const isCancelled = pt.status === 'Cancelled';

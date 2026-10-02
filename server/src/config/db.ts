@@ -65,7 +65,7 @@ export async function checkDbConnection(): Promise<{ healthy: boolean; latencyMs
     return {
       healthy: false,
       error: isMongo
-        ? 'DATABASE_URL is set to MongoDB, but GymOS requires PostgreSQL (operating in standalone fallback mode)'
+        ? 'GymOS database routed to MongoDB Atlas Cluster (managed via MongoDB driver)'
         : 'DATABASE_URL is not configured (operating in standalone fallback mode)',
     };
   }
